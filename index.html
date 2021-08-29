@@ -24,31 +24,53 @@
 </div>
 </section>
 <section class="section pt-1">
+
 <div class="container">
+<h1 class="title">Generate wordlist</h1>
+<div class="content">
+<p>On this page, using javascript, you can generate wordlists based on specific input data. For example, by entering an <strong>Acme.corp</strong> you will receive a list of possible passwords like <strong>Acme.corp2018!</strong>, <strong>Acme.corp123</strong>, and so on.</p>
+
+<p>You can put words of interest separated by comma, whitespace or newline</p>
+
+<p>You can use own hashcat rules to generate wordlist.</p>
+
+<p>Follow project on <a href="https://github.com/zzzteph/weakpass">github</a> or <a href="https://zzzteph.github.io/weakpass/">pages</a></p>
+
+
+</div>
+
+
+
 <div class="field">
-<label class="label">Data</label>
-<div class="control">
-<textarea class="textarea is-primary" id="input" placeholder="Primary textarea"></textarea>
+  <label class="label">Words</label>
+  <div class="control">
+    <textarea class="textarea is-primary"  id="input" placeholder="Put words of interest here..."></textarea> 
+  </div>
 </div>
-</div>
+
 <div class="field is-grouped">
-<div class="control">
-<label class="checkbox">
-<input type="checkbox" id="hideRules" onchange="hideRules()">
-Show rules
-</label>
+  <div class="control">
+    <label class="checkbox">
+      <input type="checkbox" id="hideRules" onchange="hideRules()">
+      Show rules
+    </label>
+  </div>
+  
+    <div class="control">
+    <label class="checkbox">
+      <input type="checkbox" id="filterWiFi" onchange="generate()">
+      WI-FI
+    </label>
+  </div>
+  
+  
 </div>
-<div class="control">
-<label class="checkbox">
-<input type="checkbox" id="filterWiFi" onchange="generate()">
-WI-FI
-</label>
-</div>
-</div>
+
+
 <div class="field" id="ruleBox">
-<label class="label">Rules</label>
-<div class="control">
-<textarea class="textarea is-primary" id="rules" rows="25" placeholder="Rules">
+  <label class="label">Rules</label>
+  <div class="control">
+    <textarea class="textarea is-primary"  id="rules" rows="25" placeholder="Rules">
 :
 c
 u
@@ -274,20 +296,27 @@ c $2 $8
 c $2 $9
 c $3 $0
 c $3 $1
-</textarea>
-</div>
-</div>
-<div class="field">
-<div class="control">
-<button class="button is-link" onclick="generate()">Generate</button>
-</div>
+</textarea> 
+  </div>
 </div>
 <div class="field">
-<label class="label" id="count">Result</label>
-<div class="control">
-<textarea class="textarea is-primary" id="result" rows="25"></textarea>
+  <div class="control">
+    <button class="button is-link" onclick="generate()">Generate</button>
+  </div>
+
 </div>
+
+
+
+<div class="field">
+  <label class="label" id="count">Result</label>
+  <div class="control">
+    <textarea class="textarea is-primary" id="result" rows="25"></textarea> 
+  </div>
 </div>
+
+
+
 <script>
 
 function convertN(chr) {
@@ -616,8 +645,11 @@ function hideRules() {
 }
 hideRules();
 </script>
-</div>
-</section>
 
+
+ </div>
+
+</section>
+  </body>
 
 </html>

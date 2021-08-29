@@ -25,17 +25,14 @@
 </section>
 <section class="section pt-1">
 
-<div class="container">
+<<div class="container">
 <h1 class="title">Generate wordlist</h1>
 <div class="content">
-<p>On this page, using javascript, you can generate wordlists based on specific input data. For example, by entering an <strong>Acme.corp</strong> you will receive a list of possible passwords like <strong>Acme.corp2018!</strong>, <strong>Acme.corp123</strong>, and so on.</p>
+<p>On this page, using javascript, you can generate a wordlist based on specific input data. For example, by entering an <strong>Acme.corp</strong> you will receive a list of possible passwords like <strong>Acme.corp2018!</strong>, <strong>Acme.corp123</strong>, and so on.</p>
 
-<p>You can put words of interest separated by comma, whitespace or newline</p>
+<p>You can use <a href="https://hashcat.net/wiki/doku.php?id=rule_based_attack">hashcat rules</a> to generate a wordlist. By default, the generator will use its own rules, which you can find here or click on <strong>"Show rules"</strong>.</p>
 
-<p>You can use own hashcat rules to generate wordlist.</p>
-
-<p>Follow project on <a href="https://github.com/zzzteph/weakpass">github</a> or <a href="https://zzzteph.github.io/weakpass/">pages</a></p>
-
+<p>Follow the project on <a href="https://github.com/zzzteph/weakpass">Github</a> or <a href="https://zzzteph.github.io/weakpass/">pages</a></p>
 
 </div>
 
@@ -43,6 +40,7 @@
 
 <div class="field">
   <label class="label">Words</label>
+   <p class="help">Separated by comma, whitespace or newline</p>
   <div class="control">
     <textarea class="textarea is-primary"  id="input" placeholder="Put words of interest here..."></textarea> 
   </div>
@@ -299,13 +297,16 @@ c $3 $1
 </textarea> 
   </div>
 </div>
-<div class="field">
+<div class="field is-grouped">
   <div class="control">
     <button class="button is-link" onclick="generate()">Generate</button>
   </div>
-
+  <div class="control">
+    <button class="button is-success" onclick="copy()">Copy to clipboard</button>
+	<p class="help" id="notify" >Copied!</p>
+  </div>
+  
 </div>
-
 
 
 <div class="field">
@@ -643,7 +644,17 @@ function hideRules() {
     } else
         document.getElementById('ruleBox').hidden = true;
 }
+
+function copy() {
+  document.getElementById("result").select();
+  document.execCommand("copy");
+  document.getElementById('notify').style.display = 'block';
+
+  setTimeout(function() { document.getElementById('notify').style.display = 'none'; },5000); 
+}
+
 hideRules();
+document.getElementById('notify').style.display = 'none';
 </script>
 
 

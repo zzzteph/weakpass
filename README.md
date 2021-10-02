@@ -3,6 +3,12 @@
 
 The tool generates a wordlist based on a set of words entered by the user.
 
+Link: https://zzzteph.github.io/weakpass/
+
+Secondary: https://weakpass.com/generate
+
+
+
 <p align="center">
   <img src="https://github.com/zzzteph/weakpass/blob/main/sample.png?raw=true"  height="350">
 </p>
@@ -14,9 +20,6 @@ For example, during penetration testing, you need to gain access to some service
 Therefore, using the generated wordlist, it is possible to organize a targeted and effective online password check.
 
 
-Link: https://zzzteph.github.io/weakpass/
-
-Secondary: https://weakpass.com/generate
 
 
 ## Features

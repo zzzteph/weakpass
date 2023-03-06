@@ -37,3 +37,12 @@ There are several modes how you can use this tool:
 |1800|sha512crypt|$6$52450745$k5ka2p8bFuSmoVT1tzOyyuaREkkKBcCNqoDKzYiJL9RaE8yMnPgh2XzzF0NDrUhgrcLwg78xs1w5pJiypEdFX/|
 
 
+## Video
+
+
+https://user-images.githubusercontent.com/917422/223275694-54d87f22-9f32-406e-9b93-cad9530fb877.mp4
+
+
+
+
+

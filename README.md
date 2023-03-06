@@ -26,7 +26,7 @@ There are several modes how you can use this tool:
 - **Magic crack** - try to crack all your hashes at once with preset templates.
 - **Custom** - you can specify own settings, wordlist and rules.
 
-Supported hash types: md5, sha1, sha256, sha512, JWT, ntlm, md5crypt, sha256crypt, sha512crypt, jwt, etc. and  **TBA**
+Supported hash types: md5, sha1, sha256, sha512, JWT, ntlm, md5crypt, sha256crypt, sha512crypt, etc. and  **TBA**
 
 ## How-to
 

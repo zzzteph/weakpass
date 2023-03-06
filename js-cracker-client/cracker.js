@@ -950,6 +950,15 @@ function extractSalt(hash) {
 }
 
 
+function calculate_m16500(token,key) {
+	
+	
+	const jwtParts = token.split(".");
+	var clearedToken=String(jwtParts[0])+"."+String(jwtParts[1]);
+    return CryptoJS.HmacSHA256(String(clearedToken),String(key)).toString(CryptoJS.enc.Base64).replaceAll("=","").replaceAll("+","-").replaceAll('/','_');
+}
+
+
 function calculate_m0(string) {
     return CryptoJS.MD5(String(string)).toString(CryptoJS.enc.Hex);
 }
@@ -1018,7 +1027,13 @@ function crack_m7400(string, hash) {
         return string;
     return false;
 }
-
+function crack_m16500(string, hash) {
+    var signature = calculate_m16500(hash,string );
+    var token = hash.split(".");
+    if (token[2] == signature)
+        return string;
+    return false;
+}
 
 function calculate_m500(string, salt) {
     return md5crypt(string, salt);
@@ -1203,7 +1218,7 @@ function crack_salted(hashDictionary, passwordsData, rulesData, type) {
                             'progress': progress
                         });
                     }
-                    console.log("rule:" + rule);
+
                     entry = applyRule(password, rule);
                     if (entry == false) continue;
 
@@ -1217,6 +1232,9 @@ function crack_salted(hashDictionary, passwordsData, rulesData, type) {
                         case 7400:
                             found = crack_m7400(entry, searchHash);
                             break;
+												case 16500:
+                        found = crack_m16500(entry, searchHash);
+                        break;
 
                     }
 
@@ -1264,7 +1282,9 @@ function crack_salted(hashDictionary, passwordsData, rulesData, type) {
                     case 7400:
                         found = crack_m7400(entry, searchHash);
                         break;
-
+					case 16500:
+                        found = crack_m16500(entry, searchHash);
+                        break;
                 }
 
                 if (found != false) {
@@ -1363,6 +1383,14 @@ function measure_speed_m3500() {
     return Math.round((100 * 1000) / (end - start));
 }
 
+function measure_speed_m16500() {
+	
+    var start = performance.now();
+    for (var i = 0; i < 100; i++) calculate_m16500("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.bgGd720CeHP4kY9mGuMEoteBq4TP4d0W2XkpiI4bVgg");
+    var end = performance.now();
+    return Math.round((100 * 1000) / (end - start));
+}
+
 
 function validate_by_regexp(hash, regexp) {
     hash = String(hash);
@@ -1387,6 +1415,10 @@ function validate_hash(hash, type) {
     else if (type == 500) return validate_by_regexp(hash, "^\\$1\\$(rounds=\\d{1,8}\\$)?[./\\w]{0,16}\\$[./\\w]{22}$"); //md5crypt
     else if (type == 1800) return validate_by_regexp(hash, "^\\$6\\$(rounds=\\d{1,8}\\$)?[./\\w]{0,16}\\$[./\\w]{86}$"); //sha512crypt
     else if (type == 7400) return validate_by_regexp(hash, "^\\$5\\$(rounds=\\d{1,8}\\$)?[./\\w]{0,16}\\$[./\\w]{43}$"); //sha256crypt
+	else if (type == 16500) return validate_by_regexp(hash, "^([A-Za-z0-9-_]+)\\.([A-Za-z0-9-_]+)\\.([A-Za-z0-9-_]+)$"); //JWT
+	
+	
+	
     return false;
 }
 
@@ -1397,6 +1429,10 @@ onmessage = function(e) {
 
 
 
+//console.log(calculate_m16500("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.bgGd720CeHP4kY9mGuMEoteBq4TP4d0W2XkpiI4bVgg","123456"));
+
+
+//return;
 
     var action = e.data[0];
     if (e.data[0] == "benchmark") {
@@ -1441,6 +1477,11 @@ onmessage = function(e) {
             'id': 7400,
             'speed': measure_speed_m7400()
         });
+	speedstats.push({
+            'type': 'jwt',
+            'id': 16500,
+            'speed': measure_speed_m16500()
+        });
         postMessage(speedstats);
         return;
     }
@@ -1453,7 +1494,7 @@ onmessage = function(e) {
 
 
 
-        var types = [0, 100, 1400, 1700, 2600, 3500, 1000, 10, 500, 1800, 7400];
+        var types = [0, 100, 1400, 1700, 2600, 3500, 1000, 10, 500, 1800, 7400,16500];
 
 
 
@@ -1505,6 +1546,9 @@ onmessage = function(e) {
                 case 7400:
                     crack_salted(hashDictionary, wordlist_small, [], type);
                     break;
+				 case 16500:
+                    crack_salted(hashDictionary, wordlist_big, rules_list, type);
+                    break;
 
             }
 
@@ -1552,7 +1596,7 @@ onmessage = function(e) {
 
         if (type == 0 || type == 100 || type == 1400 || type == 1700 || type == 2600 || type == 3500 || type == 1000) {
             crack_unsalted(hashDictionary, passwordsData, rulesData, type);
-        } else if (type == 10 || type == 500 || type == 1800 || type == 7400) {
+        } else if (type == 10 || type == 500 || type == 1800 || type == 7400 || type ==16500) {
             crack_salted(hashDictionary, passwordsData, rulesData, type);
         }
 
@@ -1571,7 +1615,7 @@ onmessage = function(e) {
         var hashesData = hashes.split(/[\s,]+/).filter((v, i, a) => a.indexOf(v) === i).filter(function(e) {
             return e === 0 || e
         });
-        var types = [0, 100, 1400, 1700, 2600, 3500, 1000, 10, 500, 1800, 7400];
+        var types = [0, 100, 1400, 1700, 2600, 3500, 1000, 10, 500, 1800, 7400,16500];
         var passwordsData = passwords.split("\n");
         var rulesData = [];
         if (use_rules == true)
@@ -1595,7 +1639,7 @@ onmessage = function(e) {
             }
             if (type == 0 || type == 100 || type == 1400 || type == 1700 || type == 2600 || type == 3500 || type == 1000) {
                 crack_unsalted(hashDictionary, passwordsData, rulesData, type);
-            } else if (type == 10 || type == 500 || type == 1800 || type == 7400) {
+            } else if (type == 10 || type == 500 || type == 1800 || type == 7400 || type==16500) {
                 crack_salted(hashDictionary, passwordsData, rulesData, type);
             }
         }

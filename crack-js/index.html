@@ -153,6 +153,8 @@
 	<option value="500">md5crypt</option>
 	<option value="1800">sha512crypt</option>
 	<option value="7400">sha256crypt</option>
+	<option value="16500">jwt</option>
+	
 	<option value="9999">Try all</option>
   </select>
 </div>
@@ -1675,7 +1677,10 @@ c $3 $1
 	<tr><td>MD5CRYPT</td><td id="md5crypt"></td><td>$1$28772684$iEwNOgGugqO9.bIz5sk8k/</td></tr>
 	<tr><td>SHA256CRYPT</td><td id="sha256crypt"></td><td>$5$GX7BopJZJxPc/KEK$le16UF8I2Anb.rOrn22AUPWvzUETDGefUmAV8AZkGcD</td></tr>
 	<tr><td>SHA512CRYPT</td><td id="sha512crypt"></td><td>$6$52450745$k5ka2p8bFuSmoVT1tzOyyuaREkkKBcCNqoDKzYiJL9RaE8yMnPgh2XzzF0NDrUhgrcLwg78xs1w5pJiypEdFX/
-</td></tr>
+</td>
+<tr><td>JWT</td><td id="jwt"></td><td>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.pF3q46_CLIyP_1QZPpeccbs-hC4n9YW2VMBjKrSO6Wg
+</td>
+</tr>
 </tbody>
 </table>
 
@@ -1708,12 +1713,12 @@ function settings() {
 
         document.getElementById('magic').hidden = true;
         document.getElementById('settings_panel').hidden = false;
-        document.getElementById('settings').innerHTML = "Hide settings";
+        document.getElementById('settings').innerHTML = "Hide";
         document.getElementById('settings').className = "button is-link is-danger";
     } else {
         document.getElementById('settings_panel').hidden = true;
         document.getElementById('magic').hidden = false;
-        document.getElementById('settings').innerHTML = "Show settings";
+        document.getElementById('settings').innerHTML = "Custom";
         document.getElementById('settings').className = "button is-link is-success";
     }
 }
@@ -1749,12 +1754,12 @@ function addToResultTable(obj) {
     password.style = "word-break:break-all;";
     type.width = "10%";
     password.width = "30%";
-    hash.width = "60%";
+    hash.width = "60%"; 
 
     hash.innerText = obj.hash;
     password.innerText = obj.password; //XSS?
 
-
+	console.log(obj.type);
     switch (obj.type) {
         case 0:
             type.innerText = "MD5";
@@ -1788,6 +1793,9 @@ function addToResultTable(obj) {
             break;
         case 7400:
             type.innerText = "sha256crypt";
+            break;
+		case 16500:
+            type.innerText = "jwt"; 
             break;
         default:
             type.innerText = "";

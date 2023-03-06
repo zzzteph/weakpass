@@ -27,6 +27,10 @@ Supported hash types: md5,md5(md5),md5(md5(md5))),sha1,sha256,sha512,JWT,ntlm,md
 - Link: https://zzzteph.github.io/weakpass/generator/
 - Secondary: https://weakpass.com/generate
 
+<p align="center">
+  <img src="https://github.com/zzzteph/weakpass/blob/main/generator/sample.png?raw=true"  height="350">
+</p>
+
 The tool generates a wordlist based on a set of words entered by the user.
 For example, during penetration testing, you need to gain access to some service, device, account, or Wi-Fi network that is password protected. For example, let it be the _Wi-Fi_ network of **EvilCorp**. Sometimes, a password is a combination of _device/network/organization_ name with some date, special character, etc. Therefore, it is simpler and easier to test some combinations before launching more complex and time-consuming checks. For example, cracking a _Wi-Fi_ password with a wordlist can take several hours and can fail, even if you choose a [great wordlist](https://weakpass.com/wordlist/1950) because there was no such password in it like **Evilcorp2019**. 
 

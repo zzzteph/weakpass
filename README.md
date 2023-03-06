@@ -1,14 +1,19 @@
 # Weakpass tools
 
-Here you can find the list of tools for password and hashcracking.
+Here you can find the list of tools from weakpass.com for password and hash cracking in one place.
 
 - [Crack-JS](https://zzzteph.github.io/weakpass/crack-js/) - JS based online hash cracking
 - [Password Generator](https://zzzteph.github.io/weakpass/generator/) - generate a wordlist based on a set of words entered by the user.
 
-## Crack-JS
+# Crack-JS
 **Hash cracking immediately and only with your browser.**
 - Link: https://zzzteph.github.io/weakpass/crack-js/
 - Secondary: https://weakpass.com/weakpass/crack-js/
+
+<p align="center">
+  <img src="https://github.com/zzzteph/weakpass/blob/main/crack-js/sample.PNG?raw=true"  height="350">
+</p>
+
 
 Ever imagine cracking passwords in your browser? We're All Mad Here...
 
@@ -21,9 +26,19 @@ There are several modes how you can use this tool:
 - **Magic crack** - try to crack all your hashes at once with preset templates.
 - **Custom** - you can specify own settings, wordlist and rules.
 
-Supported hash types: md5,md5(md5),md5(md5(md5))),sha1,sha256,sha512,JWT,ntlm,md5crypt,sha256crypt,sha512crypt,jwt, **TBA**
+Supported hash types: md5, sha1, sha256, sha512, JWT, ntlm, md5crypt, sha256crypt, sha512crypt, jwt, etc. and  **TBA**
 
-## Passwords generator
+## How-to
+
+
+
+https://user-images.githubusercontent.com/917422/223262105-c3350bea-cf58-4731-af8c-a95053676343.mp4
+
+
+
+
+
+# Passwords generator
 - Link: https://zzzteph.github.io/weakpass/generator/
 - Secondary: https://weakpass.com/generate
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Weakpass password generator</title>
+<title>Weakpass tools</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
 <script src="https://kit.fontawesome.com/d0ae4a42e6.js" crossorigin="anonymous"></script>
 </head>
@@ -17,6 +17,23 @@
 
 
 </div>
+
+         <div id="navbarBasicExample" class="navbar-menu is-size-5 is-family-monospace">
+            <div class="navbar-start">
+
+			  <a class="navbar-item" href="/weakpass/crack-js/">
+				CRACK-JS
+			  </a>
+			  
+			  			  <a class="navbar-item" href="/weakpass/generator/">
+				Passwords generator
+			  </a>
+ 
+            </div>
+
+         </div>
+
+
 </nav>
   
   
@@ -24,647 +41,68 @@
   
 </div>
 </section>
-<section class="section pt-1">
-
+<section class="section is-family-monospace">
 <div class="container">
-<h1 class="title">Generate wordlist</h1>
-<div class="content">
-<p>Here you can generate a wordlist based on specific input data. For example, by entering an <strong>Acme.corp</strong> you will receive a list of possible passwords like <strong>Acme.corp2018!</strong>, <strong>Acme.corp123</strong>, and so on. All data is processed on the client with JavaScript.</p>
-<p>You can use <a href="https://hashcat.net/wiki/doku.php?id=rule_based_attack">hashcat rules</a> to generate a wordlist. By default, the generator will use its own rules, which you can find here or click on <strong>"Show rules"</strong>.</p>
+<p>
 
-<p>Follow the project on <a href="https://github.com/zzzteph/weakpass">Github</a> or <a href="https://zzzteph.github.io/weakpass/">pages</a></p>
 
+
+
+<p class="content">
+  <h1 class="title"><a href="/weakpass/generator/">Crack-JS</a></h1>
+<h1 class="subtitle">Hash cracking immediately and only with your browser.</h1>
+Link: <a href="https://zzzteph.github.io/weakpass/crack-js/" target="_blank">https://zzzteph.github.io/weakpass/crack-js/</a><br/>
+Secondary:  <a href="https://weakpass.com/weakpass/crack-js/" target="_blank">https://weakpass.com/weakpass/crack-js/</a><br/>
+<br/><br/>
+
+<p>Ever imagine cracking passwords in your browser? <s>We're All Mad Here</s></p>
+
+<p>This tool lets you quickly identify weak passwords in seconds before launching your favourite tool. All data is processed on the client with JavaScript.</p>
+
+<p>With a password generator, you can generate wordlists based on specific input data and launch password list attacks.</p>
+
+<p>You can use hashcat rules to generate a wordlist. By default, the generator will use its own rules, which you can find here or click "Show rules".</p>
+
+<p>There are several modes how you can use this tool:
+<ul>
+<li><strong>Magic crack</strong> - try to crack all your hashes at once with preset template.</li>
+<li><strong>Custom</strong> - you can specify own settings, wordlist and rules </li> 
+
+</ul>
+</p>
+<p>Supported hash types: 
+<ul>
+	<li><strong>md5</strong>,<strong>md5(md5)</strong>,<strong>md5(md5(md5)))</strong>,<strong>sha1</strong>,<strong>sha256</strong>,<strong>sha512</strong></li>
+	<li><strong>JWT</strong>,<strong>ntlm</strong>,<strong>md5crypt</strong>,<strong>sha256crypt</strong>,<strong>sha512crypt</strong></li>
+</ul>
+
+<br/><br/>
+
+</p>
+
+
+<p class="content">
+  <h1 class="title"><a href="/weakpass/generator/">Passwords generator</a></h1>
+
+Link: <a href="https://zzzteph.github.io/weakpass/generator/" target="_blank">https://zzzteph.github.io/weakpass/generator/</a><br/>
+Secondary:  <a href="https://weakpass.com/generate" target="_blank">https://weakpass.com/generate</a><br/>
+
+
+
+
+
+<br/>
+The tool generates a wordlist based on a set of words entered by the user.<br/>
+<p>For example, during penetration testing, you need to gain access to some service, device, account, or Wi-Fi network that is password protected. For example, let it be the <em>Wi-Fi</em> network of <strong>EvilCorp</strong>. Sometimes, a password is a combination of <em>device/network/organization</em> name with some date, special character, etc. Therefore, it is simpler and easier to test some combinations before launching more complex and time-consuming checks. For example, cracking a <em>Wi-Fi</em> password with a wordlist can take several hours and can fail, even if you choose a <a href="https://weakpass.com/wordlist/1950">great wordlist</a> because there was no such password in it like <strong>Evilcorp2019</strong>. </p>
+<p>Therefore, using the generated wordlist, it is possible to organize a targeted and effective online password check.</p>
+
+</p>
 </div>
-
-
-
-<div class="field">
-  <label class="label">Words</label>
-   <p class="help">Separated by comma, whitespace or newline</p>
-  <div class="control">
-    <textarea class="textarea is-primary"  id="input" placeholder="Put words of interest here..."></textarea> 
-  </div>
-</div>
-
-<div class="field is-grouped">
-  <div class="control">
-    <label class="checkbox">
-      <input type="checkbox" id="hideRules" onchange="hideRules()">
-      Show rules
-    </label>
-  </div>
-  
-    <div class="control">
-    <label class="checkbox">
-      <input type="checkbox" id="filterWiFi" onchange="generate()">
-      WI-FI
-    </label>
-  </div>
-  
-  
-</div>
-
-
-<div class="field" id="ruleBox">
-  <label class="label">Rules</label>
-  <div class="control">
-    <textarea class="textarea is-primary"  id="rules" rows="25" placeholder="Rules">
-:
-c
-u
-C
-##append numbers 1...5
-$1
-$2
-$3
-$4
-$5
-$6
-$7
-$8
-$9
-$0
-$1 $2 $3
-$1 $2 $3 $4
-$1 $2 $3 $4 $5
-$1 $2 $3 $4 $5 $6
-##current year 2018-2022
-$2 $0 $1 $8
-$2 $0 $1 $9
-$2 $0 $2 $0
-$2 $0 $2 $1
-$2 $0 $2 $2
-#years or month
-$0 $1
-$0 $2
-$0 $3
-$0 $4
-$0 $5
-$0 $6
-$0 $7
-$0 $8
-$0 $9
-$1 $0
-$1 $1
-$1 $2
-$1 $3
-$1 $4
-$1 $5
-$1 $6
-$1 $7
-$1 $8
-$1 $9
-$2 $0
-$2 $1
-$2 $2
-$2 $3
-$2 $4
-$2 $5
-$2 $6
-$2 $7
-$2 $8
-$2 $9
-$3 $0
-$3 $1
-##append sepcial chars
-$!
-$@
-$#
-$$
-$! $@
-$! $@ $#
-$! $@ $# $$
-##special chars + numbers
-$1 $2 $3 $!
-$! $1 $2 $3
-$1 $@ !#
-$! $@ 1#
-##special chars + years
-$2 $0 $1 $8 $!
-$2 $0 $1 $9 $!
-$2 $0 $2 $0 $!
-$2 $0 $2 $1 $!
-$2 $0 $2 $2 $!
-$! $2 $0 $1 $8
-$! $2 $0 $1 $9
-$! $2 $0 $2 $0
-$! $2 $0 $2 $1
-$! $2 $0 $2 $2
-$2 $0 $1 $8 $! $@ $#
-$2 $0 $1 $9 $! $@ $#
-$2 $0 $2 $0 $! $@ $#
-$2 $0 $2 $1 $! $@ $#
-$2 $0 $2 $2 $! $@ $#
-$0 $1 $! 
-$0 $2 $!
-$0 $3 $!
-$0 $4 $!
-$0 $5 $!
-$0 $6 $!
-$0 $7 $!
-$0 $8 $!
-$0 $9 $!
-$1 $0 $!
-$1 $1 $!
-$1 $2 $!
-$1 $3 $!
-$1 $4 $!
-$1 $5 $!
-$1 $6 $!
-$1 $7 $!
-$1 $8 $!
-$1 $9 $!
-$2 $0 $!
-$2 $1 $!
-$2 $2 $!
-$2 $3 $!
-$2 $4 $!
-$2 $5 $!
-$2 $6 $!
-$2 $7 $!
-$2 $8 $!
-$2 $9 $!
-$3 $0 $!
-$3 $1 $!
-#all above cap
-c $1
-c $2
-c $3
-c $4
-c $5
-c $6
-c $7
-c $8
-c $9
-c $0
-c $1 $2 $3
-c $1 $2 $3 $4
-c $1 $2 $3 $4 $5
-c $1 $2 $3 $4 $5 $6
-c $2 $0 $1 $8
-c $2 $0 $1 $9
-c $2 $0 $2 $0
-c $2 $0 $2 $1
-c $2 $0 $2 $2
-c $!
-c $@
-c $#
-c $$
-c $! $@
-c $! $@ $#
-c $! $@ $# $$
-c $1 $2 $3 $!
-c $! $1 $2 $3
-c $1 $@ !#
-c $! $@ 1#
-c $2 $0 $1 $8 $!
-c $2 $0 $1 $9 $!
-c $2 $0 $2 $0 $!
-c $2 $0 $2 $1 $!
-c $2 $0 $2 $2 $!
-c $! $2 $0 $1 $8
-c $! $2 $0 $1 $9
-c $! $2 $0 $2 $0
-c $! $2 $0 $2 $1
-c $! $2 $0 $2 $2
-c $2 $0 $1 $8 $! $@ $#
-c $2 $0 $1 $9 $! $@ $#
-c $2 $0 $2 $0 $! $@ $#
-c $2 $0 $2 $1 $! $@ $#
-c $2 $0 $2 $2 $! $@ $#
-c $0 $1 $! 
-c $0 $2 $!
-c $0 $3 $!
-c $0 $4 $!
-c $0 $5 $!
-c $0 $6 $!
-c $0 $7 $!
-c $0 $8 $!
-c $0 $9 $!
-c $1 $0 $!
-c $1 $1 $!
-c $1 $2 $!
-c $1 $3 $!
-c $1 $4 $!
-c $1 $5 $!
-c $1 $6 $!
-c $1 $7 $!
-c $1 $8 $!
-c $1 $9 $!
-c $2 $0 $!
-c $2 $1 $!
-c $2 $2 $!
-c $2 $3 $!
-c $2 $4 $!
-c $2 $5 $!
-c $2 $6 $!
-c $2 $7 $!
-c $2 $8 $!
-c $2 $9 $!
-c $3 $0 $!
-c $3 $1 $!
-c $0 $1
-c $0 $2
-c $0 $3
-c $0 $4
-c $0 $5
-c $0 $6
-c $0 $7
-c $0 $8
-c $0 $9
-c $1 $0
-c $1 $1
-c $1 $2
-c $1 $3
-c $1 $4
-c $1 $5
-c $1 $6
-c $1 $7
-c $1 $8
-c $1 $9
-c $2 $0
-c $2 $1
-c $2 $2
-c $2 $3
-c $2 $4
-c $2 $5
-c $2 $6
-c $2 $7
-c $2 $8
-c $2 $9
-c $3 $0
-c $3 $1
-</textarea> 
-  </div>
-</div>
-<div class="field is-grouped">
-  <div class="control">
-    <button class="button is-link" onclick="generate()">Generate</button>
-  </div>
-  <div class="control">
-    <button class="button is-success" onclick="copy()">Copy to clipboard</button>
-	<p class="help" id="notify" >Copied!</p>
-  </div>
-  
-</div>
-
-
-<div class="field">
-  <label class="label" id="count">Result</label>
-  <div class="control">
-    <textarea class="textarea is-primary" id="result" rows="25"></textarea> 
-  </div>
-</div>
-
-
-
-<script>
-
-function convertN(chr) {
-
-    if (chr >= '0' && chr <= '9') {
-        return Number(chr);
-    }
-    return Number(chr.toUpperCase().charCodeAt(0) - 55);
-
-}
-
-function Nothing(string) {
-    return string;
-}
-
-function Lowercase(string) {
-    return string.toLowerCase();
-}
-
-function Uppercase(string) {
-    return string.toUpperCase();
-}
-
-function Capitalize(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
-}
-
-function InvertCapitalize(string) {
-    return string.charAt(0).toLowerCase() + string.slice(1).toUpperCase();
-}
-
-function TogglePosition(string, pos) {
-
-    if (isNaN(parseInt(pos)))
-        pos = convertN(pos);
-    if (string.charAt(pos) === string.charAt(pos).toUpperCase()) {
-        return string.slice(0, pos) + string.charAt(pos).toLowerCase() + string.slice(pos + 1);
-    }
-    if (string.charAt(pos) === string.charAt(pos).toLowerCase()) {
-        return string.slice(0, pos) + string.charAt(pos).toUpperCase() + string.slice(pos + 1);
-    }
-}
-
-function ToggleCase(string) {
-    for (var i = 0; i < string.length; i++) {
-        string = TogglePosition(string, i);
-    }
-    return string;
-}
-
-
-function Reverse(string) {
-    return string.split('').reverse().join('');
-}
-
-
-function Duplicate(string) {
-    return string + string;
-}
-
-function DuplicateN(string, n) {
-    var tmp = "";
-    n = convertN(n);
-    for (var i = 0; i < n; i++) {
-        tmp += string;
-    }
-    return tmp;
-}
-
-function Reflect(string) {
-    return string + Reverse(string);
-}
-
-function RotateLeft(string) {
-    return string.slice(1) + string.charAt(0);
-}
-
-
-function RotateRight(string) {
-    return string.charAt(string.length - 1) + string.slice(0, string.length - 1);
-}
-
-function AppendCharacter(string, chr) {
-    return string + chr;
-}
-
-function PrependCharacter(string, chr) {
-    return chr + string;
-}
-
-function TruncateLeft(string) {
-    return string.slice(1);
-}
-
-function TruncateRight(string) {
-    return string.slice(0, string.length - 1);
-}
-
-
-function DeleteN(string, n) {
-    n = convertN(n);
-    return string.slice(0, n) + string.slice(n + 1);
-}
-
-
-
-function ExtractRange(string, start, end) {
-    start = convertN(start);
-    end = convertN(end);
-    return string.slice(start, end);
-}
-
-function OmitRange(string, start, end) {
-    start = convertN(start);
-    end = convertN(end);
-    return string.slice(0, start) + string.slice(start + end);
-}
-
-function InsertN(string, n, chr) {
-    n = convertN(n);
-    return string.slice(0, n) + chr + string.slice(n);
-}
-
-function OverwriteN(string, n, chr) {
-    n = convertN(n);
-    if (n >= string.length) return string;
-    return string.slice(0, n) + chr + string.slice(n + 1);
-}
-
-function TruncateN(string, n) {
-    return string.slice(0, n);
-}
-
-
-function Replace(string, find, replace) {
-    return string.replaceAll(find, replace);
-}
-
-
-function Purge(string, chr) {
-    return Replace(string, chr, '');
-}
-
-function DuplicateFirstN(string, n) {
-    return DuplicateN(string.charAt(0), n) + string;
-}
-
-function DuplicateLastN(string, n) {
-    if (string.length === 0) return string;
-    return string + DuplicateN(string.charAt(string.length - 1), n);
-}
-
-function DuplicateAll(string) {
-    var result = '';
-    var length = string.length;
-    for (var i = 0; i < length; i++) {
-        result += string.charAt(i) + string.charAt(i);
-    }
-    return result;
-}
-
-function applyRule(string, rule) {
-    if (rule.trim().charAt(0) === '#') return false;
-    if (rule.trim().length === 0) return false;
-    for (var i = 0; i < rule.length;) {
-        switch (rule.charAt(i)) {
-            case ':':
-                string = Nothing(string);
-                i++;
-                break;
-            case 'l':
-                string = Lowercase(string);
-                i++;
-                break;
-            case 'u':
-                string = Uppercase(string);
-                i++;
-                break;
-            case 'c':
-                string = Capitalize(string);
-                i++;
-                break;
-            case 'C':
-                string = InvertCapitalize(string);
-                i++;
-                break;
-            case 't':
-                string = ToggleCase(string);
-                i++;
-                break;
-            case 'T':
-                string = TogglePosition(string, rule.charAt(i + 1));
-                i += 2;
-                break;
-            case 'r':
-                string = Reverse(string);
-                i++;
-                break;
-            case 'd':
-                string = Duplicate(string);
-                i++;
-                break;
-            case 'p':
-                string = DuplicateN(string, rule.charAt(i + 1));
-                i += 2;
-                break;
-            case 'f':
-                string = Reflect(string);
-                i++;
-                break;
-            case '{':
-                string = RotateLeft(string);
-                i++;
-                break;
-            case '}':
-                string = RotateRight(string);
-                i++;
-                break;
-            case '$':
-                string = AppendCharacter(string, rule.charAt(i + 1));
-                i += 2;
-                break;
-            case '^':
-                string = PrependCharacter(string, rule.charAt(i + 1));
-                i += 2;
-                break;
-            case '[':
-                string = TruncateLeft(string);
-                i++;
-                break;
-            case ']':
-                string = TruncateRight(string);
-                i++;
-                break;
-            case 'D':
-                string = DeleteN(string, rule.charAt(i + 1));
-                i += 2;
-                break;
-            case 'x':
-                string = ExtractRange(string, rule.charAt(i + 1), rule.charAt(i + 2));
-                i += 3;
-                break;
-            case 'O':
-                string = OmitRange(string, rule.charAt(i + 1), rule.charAt(i + 2));
-                i += 3;
-                break;
-            case 'i':
-                string = InsertN(string, rule.charAt(i + 1), rule.charAt(i + 2));
-                i += 3;
-                break;
-            case 'o':
-                string = OverwriteN(string, rule.charAt(i + 1), rule.charAt(i + 2));
-                i += 3;
-                break;
-            case '\'':
-                string = TruncateN(string, rule.charAt(i + 1));
-                i += 2;
-                break;
-            case 's':
-                string = Replace(string, rule.charAt(i + 1), rule.charAt(i + 2));
-                i += 3;
-                break;
-            case '@':
-                string = Purge(string, rule.charAt(i + 1));
-                i += 2;
-                break;
-            case 'z':
-                string = DuplicateFirstN(string, rule.charAt(i + 1));
-                i += 2;
-                break;
-            case 'Z':
-                string = DuplicateLastN(string, rule.charAt(i + 1));
-                i += 2;
-                break;
-            case 'q':
-                string = DuplicateAll(string);
-                i++;
-                break;
-            default:
-                i++;
-                break;
-        }
-
-
-
-    }
-
-    return string;
-
-}
-
-function generate() {
-
-    var data = document.getElementById("input").value.split(/[\s,]+/).filter((v, i, a) => a.indexOf(v) === i).filter(function(e) {
-        return e === 0 || e
-    });
-    var rules = document.getElementById("rules").value.split("\n");
-    var list = new Set();;
-    var filterWiFi = document.getElementById('filterWiFi').checked;
-    for (let string of data) {
-        for (let rule of rules) {
-            var ruleResult = applyRule(string, rule);
-            if (ruleResult !== false) {
-                if (filterWiFi) {
-                    if (ruleResult.length < 8) continue;
-                }
-                list.add(ruleResult);
-            }
-        }
-    }
-
-    var resultArea = document.getElementById('result');
-    document.getElementById('count').innerText = "Result: " + list.size;
-    resultArea.value = '';
-    for (let string of list) {
-
-        resultArea.value += string + '\n';
-    }
-}
-
-function hideRules() {
-    if (document.getElementById('hideRules').checked) {
-        document.getElementById('ruleBox').hidden = false;
-    } else
-        document.getElementById('ruleBox').hidden = true;
-}
-
-function copy() {
-  document.getElementById("result").select();
-  document.execCommand("copy");
-  document.getElementById('notify').style.display = 'block';
-
-  setTimeout(function() { document.getElementById('notify').style.display = 'none'; },5000); 
-}
-
-hideRules();
-document.getElementById('notify').style.display = 'none';
-</script>
-
-
- </div>
-
 </section>
 <footer class="footer">
   <div class="content has-text-centered">
     <p>
-      <strong>Weakpass</strong> 2014-2021 <br/>
+      <strong>Weakpass</strong> 2014-2023 <br/>
  <br/>
 	 
 		
@@ -690,37 +128,30 @@ document.getElementById('notify').style.display = 'none';
 		
     </p>
 	<p>
-	<div>
-  <a class="donate-with-crypto"
-     href="https://commerce.coinbase.com/checkout/5f44a9f9-5f7f-43fd-a6b3-4bb72fd644b9">
-    Donate with Crypto
-  </a>
-  <script src="https://commerce.coinbase.com/v1/checkout.js?version=201807">
-  </script>
-</div>
+
+
+
+<span class="icon-text">
+  <span class="icon">
+<i class="fab fa-bitcoin"></i>
+  </span>
+  <span>39gKysvb1YnNEJisVDyjj7uWuVMGCUvQFr</span>
+</span>
+
+<br/>
+<span class="icon-text">
+  <span class="icon">
+<i class="fab fa-ethereum"></i>
+  </span>
+  <span>0xC3b908e1f11318B80034482f4fBc62b010FFf340</span>
+</span>
+
+
+
+
 	</p>
 	
-	
-	<a href="https://www.patreon.com/bePatron?u=2339153" data-patreon-widget-type="become-patron-button">Become a Patron!</a><script async src="https://c6.patreon.com/becomePatronButton.bundle.js"></script>
 
-<p>
-
-<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
-<input type="hidden" name="cmd" value="_s-xclick">
-<input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----
-">
-<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-</form>
-</p>
-	
-	
-	Special thanks for your support via <a href="https://www.patreon.com/weakpass">Patreon</a>: <br/>
-	<a href="https://twitter.com/CsLcol">@CsLcol</a><br/>
-	<a href="https://twitter.com/3lpeter"> @3lpeter</a><br/>
-	<a href="https://twitter.com/cherboff">@cherboff</a><br/>
-	<a href="https://twitter.com/j_kerby_">@j_kerby_</a><br/>
-	<a href="https://twitter.com/maxtyukov">@maxtyukov</a><br/>
-	<a href="https://twitter.com/sergeybelove">@sergeybelove</a><br/>
 
 	
   </div>

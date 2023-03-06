@@ -40,7 +40,10 @@ There are several modes how you can use this tool:
 ## Video
 
 
-https://user-images.githubusercontent.com/917422/223275694-54d87f22-9f32-406e-9b93-cad9530fb877.mp4
+
+
+https://user-images.githubusercontent.com/917422/223277742-8f6576ec-a977-4002-8146-383ba6273a2c.mp4
+
 
 
 

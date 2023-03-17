@@ -1,7 +1,7 @@
 # Crack-JS
 **Hash cracking immediately and only with your browser.**
 - Link: https://zzzteph.github.io/weakpass/crack-js/
-- Secondary: https://weakpass.com/weakpass/crack-js/
+- Secondary: https://weakpass.com/crack-js
 
 <p align="center">
   <img src="https://github.com/zzzteph/weakpass/blob/main/crack-js/sample.PNG?raw=true"  height="350">

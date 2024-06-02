@@ -29,7 +29,6 @@ web_modules/
 .next/
 out/
 .nuxt/
-dist/
 .vuepress/dist
 .serverless/
 .fusebox/

@@ -1,4 +1,4 @@
-# Weakpass rule-based online generator
+# passgen - Weakpass rule-based online generator
 
 
 The tool generates a wordlist based on a set of words entered by the user.
@@ -18,6 +18,25 @@ For example, during penetration testing, you need to gain access to some service
 
 Therefore, using the generated wordlist, it is possible to organize a targeted and effective online password check.
 
+## Project setup
+```
+npm install
+```
+
+### Compiles and hot-reloads for development
+```
+npm run serve
+```
+
+### Compiles and minifies for production
+```
+npm run build
+```
+
+### Lints and fixes files
+```
+npm run lint
+```
 
 
 
@@ -98,6 +117,9 @@ All data is generated using Javascript so that you can use the generator without
 3. Copy the received content or click on the Copy to clipboard button for automatic copying.
 4. ...
 5. Profit!
+
+
+
 
 
 

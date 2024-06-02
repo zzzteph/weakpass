@@ -1,0 +1,467 @@
+<script setup>
+import { ref,watch  } from 'vue';
+
+
+const defaultRules="Ywp1CkMKIyNhcHBlbmQgbnVtYmVycyAxLi4uNQokMQokMgokMwokNAokNQokNgokNwokOAokOQokMAokMSAkMiAkMwokMSAkMiAkMyAkNAokMSAkMiAkMyAkNCAkNQokMSAkMiAkMyAkNCAkNSAkNgojI2N1cnJlbnQgeWVhciAyMDE4LTIwMjQKJDIgJDAgJDEgJDgKJDIgJDAgJDEgJDkKJDIgJDAgJDIgJDAKJDIgJDAgJDIgJDEKJDIgJDAgJDIgJDIKJDIgJDAgJDIgJDMKJDIgJDAgJDIgJDQKI3llYXJzIG9yIG1vbnRoCiQwICQxCiQwICQyCiQwICQzCiQwICQ0CiQwICQ1CiQwICQ2CiQwICQ3CiQwICQ4CiQwICQ5CiQxICQwCiQxICQxCiQxICQyCiQxICQzCiQxICQ0CiQxICQ1CiQxICQ2CiQxICQ3CiQxICQ4CiQxICQ5CiQyICQwCiQyICQxCiQyICQyCiQyICQzCiQyICQ0CiQyICQ1CiQyICQ2CiQyICQ3CiQyICQ4CiQyICQ5CiQzICQwCiQzICQxCiMjYXBwZW5kIHNlcGNpYWwgY2hhcnMKJCEKJEAKJCMKJCQKJCEgJEAKJCEgJEAgJCMKJCEgJEAgJCMgJCQKIyNzcGVjaWFsIGNoYXJzICsgbnVtYmVycwokMSAkMiAkMyAkIQokISAkMSAkMiAkMwokMSAkQCAhIwokISAkQCAxIwojI3NwZWNpYWwgY2hhcnMgKyB5ZWFycwokMiAkMCAkMSAkOCAkIQokMiAkMCAkMSAkOSAkIQokMiAkMCAkMiAkMCAkIQokMiAkMCAkMiAkMSAkIQokMiAkMCAkMiAkMiAkIQokMiAkMCAkMiAkMyAkIQokMiAkMCAkMiAkNCAkIQokISAkMiAkMCAkMSAkOAokISAkMiAkMCAkMSAkOQokISAkMiAkMCAkMiAkMAokISAkMiAkMCAkMiAkMQokISAkMiAkMCAkMiAkMgokISAkMiAkMCAkMiAkMgokISAkMiAkMCAkMiAkMwokISAkMiAkMCAkMiAkNAokMiAkMCAkMSAkOCAkISAkQCAkIwokMiAkMCAkMSAkOSAkISAkQCAkIwokMiAkMCAkMiAkMCAkISAkQCAkIwokMiAkMCAkMiAkMSAkISAkQCAkIwokMiAkMCAkMiAkMiAkISAkQCAkIwokMiAkMCAkMiAkMyAkISAkQCAkIwokMiAkMCAkMiAkNCAkISAkQCAkIwokMCAkMSAkISAKJDAgJDIgJCEKJDAgJDMgJCEKJDAgJDQgJCEKJDAgJDUgJCEKJDAgJDYgJCEKJDAgJDcgJCEKJDAgJDggJCEKJDAgJDkgJCEKJDEgJDAgJCEKJDEgJDEgJCEKJDEgJDIgJCEKJDEgJDMgJCEKJDEgJDQgJCEKJDEgJDUgJCEKJDEgJDYgJCEKJDEgJDcgJCEKJDEgJDggJCEKJDEgJDkgJCEKJDIgJDAgJCEKJDIgJDEgJCEKJDIgJDIgJCEKJDIgJDMgJCEKJDIgJDQgJCEKJDIgJDUgJCEKJDIgJDYgJCEKJDIgJDcgJCEKJDIgJDggJCEKJDIgJDkgJCEKJDMgJDAgJCEKJDMgJDEgJCEKI2FsbCBhYm92ZSBjYXAKYyAkMQpjICQyCmMgJDMKYyAkNApjICQ1CmMgJDYKYyAkNwpjICQ4CmMgJDkKYyAkMApjICQxICQyICQzCmMgJDEgJDIgJDMgJDQKYyAkMSAkMiAkMyAkNCAkNQpjICQxICQyICQzICQ0ICQ1ICQ2CmMgJDIgJDAgJDEgJDgKYyAkMiAkMCAkMSAkOQpjICQyICQwICQyICQwCmMgJDIgJDAgJDIgJDEKYyAkMiAkMCAkMiAkMgpjICQyICQwICQyICQzCmMgJDIgJDAgJDIgJDQKYyAkIQpjICRACmMgJCMKYyAkJApjICQhICRACmMgJCEgJEAgJCMKYyAkISAkQCAkIyAkJApjICQxICQyICQzICQhCmMgJCEgJDEgJDIgJDMKYyAkMSAkQCAhIwpjICQhICRAIDEjCmMgJDIgJDAgJDEgJDggJCEKYyAkMiAkMCAkMSAkOSAkIQpjICQyICQwICQyICQwICQhCmMgJDIgJDAgJDIgJDEgJCEKYyAkMiAkMCAkMiAkMiAkIQpjICQhICQyICQwICQxICQ4CmMgJCEgJDIgJDAgJDEgJDkKYyAkISAkMiAkMCAkMiAkMApjICQhICQyICQwICQyICQxCmMgJCEgJDIgJDAgJDIgJDIKYyAkISAkMiAkMCAkMiAkMwpjICQhICQyICQwICQyICQ0CmMgJDIgJDAgJDEgJDggJCEgJEAgJCMKYyAkMiAkMCAkMSAkOSAkISAkQCAkIwpjICQyICQwICQyICQwICQhICRAICQjCmMgJDIgJDAgJDIgJDEgJCEgJEAgJCMKYyAkMiAkMCAkMiAkMiAkISAkQCAkIwpjICQyICQwICQyICQzICQhICRAICQjCmMgJDIgJDAgJDIgJDQgJCEgJEAgJCMKYyAkMCAkMSAkISAKYyAkMCAkMiAkIQpjICQwICQzICQhCmMgJDAgJDQgJCEKYyAkMCAkNSAkIQpjICQwICQ2ICQhCmMgJDAgJDcgJCEKYyAkMCAkOCAkIQpjICQwICQ5ICQhCmMgJDEgJDAgJCEKYyAkMSAkMSAkIQpjICQxICQyICQhCmMgJDEgJDMgJCEKYyAkMSAkNCAkIQpjICQxICQ1ICQhCmMgJDEgJDYgJCEKYyAkMSAkNyAkIQpjICQxICQ4ICQhCmMgJDEgJDkgJCEKYyAkMiAkMCAkIQpjICQyICQxICQhCmMgJDIgJDIgJCEKYyAkMiAkMyAkIQpjICQyICQ0ICQhCmMgJDIgJDUgJCEKYyAkMiAkNiAkIQpjICQyICQ3ICQhCmMgJDIgJDggJCEKYyAkMiAkOSAkIQpjICQzICQwICQhCmMgJDMgJDEgJCEKYyAkMCAkMQpjICQwICQyCmMgJDAgJDMKYyAkMCAkNApjICQwICQ1CmMgJDAgJDYKYyAkMCAkNwpjICQwICQ4CmMgJDAgJDkKYyAkMSAkMApjICQxICQxCmMgJDEgJDIKYyAkMSAkMwpjICQxICQ0CmMgJDEgJDUKYyAkMSAkNgpjICQxICQ3CmMgJDEgJDgKYyAkMSAkOQpjICQyICQwCmMgJDIgJDEKYyAkMiAkMgpjICQyICQzCmMgJDIgJDQKYyAkMiAkNQpjICQyICQ2CmMgJDIgJDcKYyAkMiAkOApjICQyICQ5CmMgJDMgJDAKYyAkMyAkMQ==";
+const base64Rules="OgpyCnUKVDAKJDAKJDEKJDIKJDMKJDQKJDUKJDYKJDcKJDgKJDkKJDAgJDAKJDAgJDEKJDAgJDIKJDEgJDEKJDEgJDIKJDEgJDMKJDIgJDEKJDIgJDIKJDIgJDMKJDYgJDkKJDcgJDcKJDggJDgKJDkgJDkKJDEgJDIgJDMKJGUKJHMKXSAkYQpdIF0gJHMKXSBdICRhCl0gXSAkZSAkcgpdIF0gJGkgJGUKXSBdIF0gJG8KXSBdIF0gJHkKXSBdIF0gJDEgJDIgJDMKXSBdIF0gJG0gJGEgJG4KXSBdIF0gJGQgJG8gJGcKXjEKXmUgXmggXnQKbzBkCm8wbSBvMWEKc28wCnNpMQpzZTMKRDIKRDIgRDIKRDMKRDQKJzUgRDMKJzUgJDEKXQpdIF0KXSBdIF0KXSBdIF0gZApdIF0gRDEgXQorNSBdIH0gfSB9IH0gJzQKTzAyIHsgeyB7IHsgeyB7Cn0gXSBdIHsKfSB9IC0wIE8xMgp9IH0gfQp9IH0gfSB9ICc0Cn0gfSB9IH0gfSAnNQp9IH0gfSB9IH0gfSBZNCAnNCBk";
+const nsa64Rules="OgokMQokMgokMSAkMiAkMwokMSAkMgokMwokNwokMSAkMwokMSAkMQpeMQokMCAkMQokNQokNAokMiAkMgokNiAkOQokMiAkMwokMiAkMQokMSAkMAokOAokMCAkNwokOQokNgpdCiQwICQ4CiQhCiQxICQ0CkQzCiQwICQ2ClsKRDIKJDEgJDUKJDkgJDkKJDggJDgKRDEKJDEgJDYKJDIgJDQKJDEgJDgKJDAgJDkKJDEgJDcKJDAgJDUKRDQKJDcgJDcKJDIgJDUKJDIgJDAKJDEgJDkKJDEgJDIgJDMgJDQKJDMgJDMKJDAgJDAKJDAKJDEgJDAgJDEKJDggJDkKJDIgJDcKRDUKJDAgJDMKJDAgJDIKJDAgJDQKJDIgJDYKJDggJDcKXjIKJDUgJDUKJDIgJDgKJDYgJDYgJDYKJDQgJDQKJDkgJDI=";
+const hoboRules="OgpyClQwCnUKXQpkCiQhCiQhICQhCiRACiQjCiQkCiQlCiReCiQmCiQqCiQuCiQ/CiQxICQhCiQhICQxCkBhIEBlIEBpIEBvIEB1CkBhIEBlIEBpIEBvIEB1ICQhCiQwCiQxCiQyCiQzCiQ0CiQ1CiQ2CiQ3CiQ4CiQ5IAokMiAkMCAkMSAkNQokMiAkMCAkMSAkNgokMiAkMCAkMSAkNiAkIQokMSAkNQokMSAkNiAkIQokMSAkNAokMSAkMQokMSAkMgokMCAkMQokMCAkMAokMiAkMwokNiAkOQokNyAkNwokOSAkOQokMSAkMiAkMwokMSAkMiAkMyAkNApeNiBeMSBeMCBeMgpeNiBeMQpeMQpeIQpzbzAKc2kxCnNpIQpzZTMKc3MkCnNhQApzbzAgc2kxCnNvMCBzYUAKc28wIHNhNApzbzAgc2UzCnNvMCBzaTEgc2UzIHNzJCBzYUAKc28wIHNpMSBzZTMgc3MkIHNhQCAkIQpzbzAgc2kxIHNlMyBzcyQgc2FAICQxICQ2";
+const top500Rules="OgpsClsKWyBbClsgWyBbIFsKWyBbIFsKewp7IHsKJDEKWyBbIFsgWyBbCnIKeyB7IHsgewpjCl0KWyAkMQokMgpaMQpbIF0KeyB7IHsKJDMKXSBdClsgWyAkMQokNAokNwokNQokMAokNgokOAokOQpbIFsgWyBbIFsgWwokMCAkMQp7IHsgeyB7IHsKWyBbICQyClsgWyBjCnUKRDIKJDIgJDMKWyBbICQzClsgWyAkNwpbICQyCiQxICQyClsgXSAkMSAkMiAkMwpdIF0gXQpbIGMKWyBbICQ5CmwgJDEKWyBbICQ1CmsKWyBdIF0KRDQKWyAkMCAkMQpbIFsgXQpbIFsgXSBdCkQ1CkQzCiQxICQxClsgWyAkNApENgpbIFsgWyBbIGQKXnMKWyAkNgpbIFsgJDgKWyBbIFsgJDEKWyAkMwpvMG0gbzFhCiQxICQwCl0gXSBdIF0KWyAkNwpEMQpENwokMSAkMwpZMQpbIF5zCnsgYwpbIFsgXnMKeyB7IGMKSwpebQpdICQxClsgJDUKWyAkNAokMCAkOQpEOApeMQokMCAkOAokMSAkMiAkMwpbIFsgJDYKWyBbICQwClsgWyBebQpbIFsgYyAkMQokMiAkMQokMCAkMAokMiAkMgpbIFsgJDEgJDIKWyAkMiAkMgpsIF0gJDEKYyAkMQpbICQ4CloyClsgJDEgJDEKWyBbIFsgZApbICQ5ClsgWyBeYgpbIF50CiQ2ICQ5CiQwICQ3CiQwICQ0ClsgWyBeawp9ClsgWyBedAokOSAkOQp9IH0KJDAgJDMKWyBeawpbIFsgXmQKWyBbIF5jCiQwICQyCl5jCiQwICQ1ClsgJDkgJDkKJDEgJDQKRDkKWyAkMiAkMQpbICQwCiQhClsgWyBbIF0KWyAkNiAkOQpbIF5wCl50ClsgWyBeagokMCAkNgpbIFsgXnAKJDcgJDcKWyBebQpbIFsgJDEgJDIgJDMKXSAkMwp9IH0gfQokOCAkOApbICQ3ICQ3Cl5qClsgWyBkCl5kClsgWyBbICQxICQyICQzCl0gJDIKZApbICQxICQyCl5hCl5iCm8wZApbIF5qCiQyICQ0CnsgJDEKWyBjICQxClsgJDAgJDgKWyAkMiAkMwpeawokMiAkNQpbICQwICQ5CiRzCl0gJDQKbzB0IG8wYgpbIF5yClsgWyBbIFsgYwpbIFsgWyBjCl0gJDUKWyAkMCAkNwpeeSBebQpbICQxICQwClsgWyBecgpbICQxICQyICQzCmwgJCEKWyBeYwpbIFsgXmwKXSAkOQokMiAkMApdICQwCl0gJDcKJDggJDcKejEKbCAkMSAkMgpdICQ4ClsgJDEgJDMKWyAkOCAkOAokOCAkOQpbIFsgWyBdIF0KJDEgJDUKJDQgJDUKKjAyCm8xOApbIFsgXmcKWyBeMgpsIF0gJDIKWyAkMCAkMAokNiAkNgpdICQ2Cm8xOQpsICQyCmwgXSAkMApeZgokNSAkNQpbIF5sClsgJDIgJDQKXnAKJDIgJDcKbCBdICQzClsgXSBdICQxICQyICQzClsgWyBdICQxICQyICQzClsgJDAgJDYKbCBdICQ1CmwgXSAkNAokOCAkNgpbIF4xCiQxICQ2ClsgJDAgJDUKJDcgJDgKWyAkMyAkMwpEMiBEMgpbIFsgXmYKJDMgJDAKWyBbIFsgXSBdIF0KWyAkNSAkNQokMiAkOAokMSAkNwpeMgpbIF5mCiQ5ICQ3ClkxIFkxClsgJDAgJDMKXmUKJDMgJDMKbzE3ClsgJDIgJDUKJDIgJDYKWyBbIFsgJDEgJDIKJDEgJDgKKzAgKzAgKzAgeDEyCmwgXSAkNwokNCAkNAokOSAkOApsIF0gJDkKJDggJDUKXnIKWyAkMCAkMgokNSAkNgokNyAkOQpbICQwICQ0CiQ5ICQ2CmwgJDQKRSAkMQpbIFsgXm4KbCAkMwpbIF5nCl0gXSBdIF0gXQpbIFsgXmgKJDggJDQKciAnNiByCiQ4ICQyCiQ4ICQxCiQ2ICQ4CnsgJDIKJGUKJDkgJDAKeyAkMwpbIFsgXncKJDYgJDUKWTIKWyBebgpeNwokNSAkMAokMyAkNApsIF0gJDgKWyBbIF5hClsgJDYgJDYKXjMKJDEgJDkKJGEKWyBedwpbICQyICQwCnsgJDAKXmwKfSB9IC0wIHgxMgokOCAkMwokNiAkNwpeOAokNyAkMQpjICQxICQyCl5oCiQ3ICQ1CiQ3ICQyCiQ3ICQ0CiQzICQxCiQyICQwICQxICQwCmwgXSAkNgokOSAkNQpeZSBeaCBedApeOQpeNApbICQyICQ3Cl0gJDEgJDIgJDMKWyBjICQwICQxCiQ5ICQxCiQ4ICQwCiQ1ICQ3CiQ2ICQwCiQ3ICQ2CmwgJDcKWyBeYQpvNzEKWyBeZQpsICQwCl0gXSAkMQpvMWUKeyB7IHsgYwokNiAkMwpsICQ1ClsgJDQgJDQKJDUgJDQKaTE5CiQ2ICQ0CmwgJDEgJDIgJDMKJDIgJDkKbzE2CmsgSwpbIF5oClsgJDkgJDgKWyAkMSAkNAokOSAkMgpeNQpbICQyICQ4Cl4wIF4yCl5uCnsgeyB7IHsgYwpbICQ4ICQ5CiRuCiQxICQhCmkxOAokNCAkMApvMXUKfSB9IH0gfSB9IH0gWTQgJzQgZAokMSAkMiAkMyAkNApbICQyICQ2CmkxZQpbICQzICQwCl53ClsgJDggJDcKXjYKWyBbIF5lCl5nCm81MQokNiAkMgokNSAkOQpjICQyCmMgJCEKXSBjCm8xMAokOSAkNAokNyAkMwokNyAkMAokNCAkNwppMTcKJDMgJDIKWyAkOSAkNwpbICQzICQxCiQ5ICQzClsgJDEgJDUKWyAkNSAkMApbICQ3ICQ4CmwgJDgKJDQgJDMKJDUgJDIKJDYgJDEKc28wCmwgJDYKJDUgJDEKWyAkOCAkNQokNSAkOApvMTUKXjIgXjEKWyAkMSAkOAokMyAkNQpbICQ4ICQ2Cmk4IQokMCAkMCAkNwpjICQwICQxClsgWyBjICQxICQyICQzCm8xbwpbICQyICQ5ClsgXjQKWyAkNCAkNQpbICQxICQ2CksgJDEKRSBdClsgJDEgJDcKWyAkOSAkNgpbICQ5ICQ1Cm8xYQpbICQ1ICQ2CmwgJDkKWyAkOCAkMgpbICQ3ICQ1ClsgJDcgJDkKJDUgJDMKbzYxCm8zMQpeOSBeMQpbICQ2ICQ1ClsgJDggJDEKJDQgJDgKJDQgJDIKJD8KWyAkNyAkNgp7IHsgeyAkNApbICQ4ICQzClsgXnoKWyBbIF52ClsgJDYgJDgKJDQgJDYKbzQxCnsgJDcKbzE0ClsgYyAkMSAkMgpbICQ3ICQyCmkxYQpbIGMgJDEgJDEKeyAkNAokNCAkOQpjICQxICQyICQzClsgWyBeegpbICQ4ICQ0Cm81MgokMyAkNwpbIFsgWyBbIFsgYwpbICQ1ICQ0Cl44IF4yClsgXnYKeDAyIHsgeyB7IHsgeyB7CnIgJzcgcgpyICc4IHIKfSBaMSB7Cl42IF4yClQxClsgJDMgJDIKWyAkMyAkNAppNyEKaTE2ClsgJDYgJDcKWyBbIF5NClsgJDcgJDQKXjUgXjIKWyBeOQpbICQ3ICQxCiQzICQ2Cm8xMwpeNyBeMgpbIGMgJDEgJDIgJDMKWyAkOSAkMApbICQ2ICQ0Cm8yMQpbIF4zClsgJDggJDAKbzMyCiR5CiRyClsgXjgKWyAkNiAkMwpbICQ0ICQyCm8xMQpdIF5zCm8xMgpbICQ1ICQ3ClsgJDcgJDMKXjkgXjIKXSBebQpbIFsgYyAkMSAkMgoqMTMKYyBUNApbIFsgXlMKJDIgJDAgJDAgJDAKWyBbIF5CCl4zIF4yClsgXmkKWyBeNwp7ICQ1ClsgJDQgJDAKejIKXjQgXjIKWyAkOSAkMwpjICQzClsgJDEgJDkKfSBdIF0gewpeMiBeMgpvMjIKXSBdICRzCl4wIF4xCiQ2ICQ2ICQ2Cm80MgpvNDAKbzM0ClsgJDkgJDEKbzMzCg==";
+
+const inputData = ref('');
+const rulesData = ref(atob(defaultRules));
+const filterWiFi = ref(false);
+const showRules = ref(true);
+const results = ref('');
+
+
+const generate = () => {
+  let data = inputData.value.split(/[\s,]+/).filter((v, i, a) => a.indexOf(v) === i && (v === "0" || v));
+
+  let rules = rulesData.value.split(/\n/).filter((v, i, a) => a.indexOf(v) === i && (v === "0" || v));
+  let list = new Set();
+  for (let string of data) {
+    for (let rule of rules) {
+        let ruleResult = applyRule(string, rule);
+      if (ruleResult !== false) {
+        if (filterWiFi.value && ruleResult.length < 8) continue;
+        list.add(ruleResult);
+      }
+    }
+  }
+
+  results.value = Array.from(list).join('\n');
+};
+
+
+
+// Watch the filterWiFi value
+watch(filterWiFi, (newValue) => {
+  if (newValue === true) {
+    filterResultWiFi();
+  }
+});
+
+const filterResultWiFi = () => {
+  let res_data = results.value.split(/\n/).filter((v, i, a) => a.indexOf(v) === i && (v === "0" || v));
+  let list = new Set();
+  for (let string of res_data) {
+        if(string.length<8)continue;
+        list.add(string);
+  }
+  results.value = Array.from(list).join('\n');
+};
+
+
+
+
+
+function setRules(type) {
+  if (type === 'default') {
+    rulesData.value = atob(defaultRules);
+  } else if (type === 'best64') {
+    rulesData.value = atob(base64Rules);
+  } else if (type === 'nsa64') {
+    rulesData.value = atob(nsa64Rules);
+  }
+  else if (type === 'top500') {
+    rulesData.value = atob(top500Rules);
+  }
+  else if (type === 'hobo') {
+    rulesData.value = atob(hoboRules);
+  }
+}
+
+
+
+function convertN(chr) {
+
+    if (chr >= '0' && chr <= '9') {
+        return Number(chr);
+    }
+    return Number(chr.toUpperCase().charCodeAt(0) - 55);
+
+}
+
+function Nothing(string) {
+    return string;
+}
+
+function Lowercase(string) {
+    return string.toLowerCase();
+}
+
+function Uppercase(string) {
+    return string.toUpperCase();
+}
+
+function Capitalize(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+}
+
+function InvertCapitalize(string) {
+    return string.charAt(0).toLowerCase() + string.slice(1).toUpperCase();
+}
+
+function TogglePosition(string, pos) {
+
+    if (isNaN(parseInt(pos)))
+        pos = convertN(pos);
+    if (string.charAt(pos) === string.charAt(pos).toUpperCase()) {
+        return string.slice(0, pos) + string.charAt(pos).toLowerCase() + string.slice(pos + 1);
+    }
+    if (string.charAt(pos) === string.charAt(pos).toLowerCase()) {
+        return string.slice(0, pos) + string.charAt(pos).toUpperCase() + string.slice(pos + 1);
+    }
+}
+
+function ToggleCase(string) {
+    for (var i = 0; i < string.length; i++) {
+        string = TogglePosition(string, i);
+    }
+    return string;
+}
+
+
+function Reverse(string) {
+    return string.split('').reverse().join('');
+}
+
+
+function Duplicate(string) {
+    return string + string;
+}
+
+function DuplicateN(string, n) {
+    var tmp = "";
+    n = convertN(n);
+    for (var i = 0; i < n; i++) {
+        tmp += string;
+    }
+    return tmp;
+}
+
+function Reflect(string) {
+    return string + Reverse(string);
+}
+
+function RotateLeft(string) {
+    return string.slice(1) + string.charAt(0);
+}
+
+
+function RotateRight(string) {
+    return string.charAt(string.length - 1) + string.slice(0, string.length - 1);
+}
+
+function AppendCharacter(string, chr) {
+    return string + chr;
+}
+
+function PrependCharacter(string, chr) {
+    return chr + string;
+}
+
+function TruncateLeft(string) {
+    return string.slice(1);
+}
+
+function TruncateRight(string) {
+    return string.slice(0, string.length - 1);
+}
+
+
+function DeleteN(string, n) {
+    n = convertN(n);
+    return string.slice(0, n) + string.slice(n + 1);
+}
+
+
+
+function ExtractRange(string, start, end) {
+    start = convertN(start);
+    end = convertN(end);
+    return string.slice(start, end);
+}
+
+function OmitRange(string, start, end) {
+    start = convertN(start);
+    end = convertN(end);
+    return string.slice(0, start) + string.slice(start + end);
+}
+
+function InsertN(string, n, chr) {
+    n = convertN(n);
+    return string.slice(0, n) + chr + string.slice(n);
+}
+
+function OverwriteN(string, n, chr) {
+    n = convertN(n);
+    if (n >= string.length) return string;
+    return string.slice(0, n) + chr + string.slice(n + 1);
+}
+
+function TruncateN(string, n) {
+    return string.slice(0, n);
+}
+
+
+function Replace(string, find, replace) {
+    return string.replaceAll(find, replace);
+}
+
+
+function Purge(string, chr) {
+    return Replace(string, chr, '');
+}
+
+function DuplicateFirstN(string, n) {
+    return DuplicateN(string.charAt(0), n) + string;
+}
+
+function DuplicateLastN(string, n) {
+    if (string.length === 0) return string;
+    return string + DuplicateN(string.charAt(string.length - 1), n);
+}
+
+function DuplicateAll(string) {
+    var result = '';
+    var length = string.length;
+    for (var i = 0; i < length; i++) {
+        result += string.charAt(i) + string.charAt(i);
+    }
+    return result;
+}
+
+function applyRule(string, rule) {
+    if (rule.trim().charAt(0) === '#') return false;
+    if (rule.trim().length === 0) return false;
+    for (var i = 0; i < rule.length;) {
+        switch (rule.charAt(i)) {
+            case ':':
+                string = Nothing(string);
+                i++;
+                break;
+            case 'l':
+                string = Lowercase(string);
+                i++;
+                break;
+            case 'u':
+                string = Uppercase(string);
+                i++;
+                break;
+            case 'c':
+                string = Capitalize(string);
+                i++;
+                break;
+            case 'C':
+                string = InvertCapitalize(string);
+                i++;
+                break;
+            case 't':
+                string = ToggleCase(string);
+                i++;
+                break;
+            case 'T':
+                string = TogglePosition(string, rule.charAt(i + 1));
+                i += 2;
+                break;
+            case 'r':
+                string = Reverse(string);
+                i++;
+                break;
+            case 'd':
+                string = Duplicate(string);
+                i++;
+                break;
+            case 'p':
+                string = DuplicateN(string, rule.charAt(i + 1));
+                i += 2;
+                break;
+            case 'f':
+                string = Reflect(string);
+                i++;
+                break;
+            case '{':
+                string = RotateLeft(string);
+                i++;
+                break;
+            case '}':
+                string = RotateRight(string);
+                i++;
+                break;
+            case '$':
+                string = AppendCharacter(string, rule.charAt(i + 1));
+                i += 2;
+                break;
+            case '^':
+                string = PrependCharacter(string, rule.charAt(i + 1));
+                i += 2;
+                break;
+            case '[':
+                string = TruncateLeft(string);
+                i++;
+                break;
+            case ']':
+                string = TruncateRight(string);
+                i++;
+                break;
+            case 'D':
+                string = DeleteN(string, rule.charAt(i + 1));
+                i += 2;
+                break;
+            case 'x':
+                string = ExtractRange(string, rule.charAt(i + 1), rule.charAt(i + 2));
+                i += 3;
+                break;
+            case 'O':
+                string = OmitRange(string, rule.charAt(i + 1), rule.charAt(i + 2));
+                i += 3;
+                break;
+            case 'i':
+                string = InsertN(string, rule.charAt(i + 1), rule.charAt(i + 2));
+                i += 3;
+                break;
+            case 'o':
+                string = OverwriteN(string, rule.charAt(i + 1), rule.charAt(i + 2));
+                i += 3;
+                break;
+            case '\'':
+                string = TruncateN(string, rule.charAt(i + 1));
+                i += 2;
+                break;
+            case 's':
+                string = Replace(string, rule.charAt(i + 1), rule.charAt(i + 2));
+                i += 3;
+                break;
+            case '@':
+                string = Purge(string, rule.charAt(i + 1));
+                i += 2;
+                break;
+            case 'z':
+                string = DuplicateFirstN(string, rule.charAt(i + 1));
+                i += 2;
+                break;
+            case 'Z':
+                string = DuplicateLastN(string, rule.charAt(i + 1));
+                i += 2;
+                break;
+            case 'q':
+                string = DuplicateAll(string);
+                i++;
+                break;
+            default:
+                i++;
+                break;
+        }
+
+
+
+    }
+
+    return string;
+
+}
+
+</script>
+
+
+<template>
+  <section class="section is-family-monospace">
+<div class="container">
+<h1 class="title">Passwords generator</h1>
+<div class="content">
+<p>Here you can generate a wordlist based on specific input data. For example, by entering an <strong>Acme.corp</strong> you will receive a list of possible passwords like <strong>Acme.corp2018!</strong>, <strong>Acme.corp123</strong>, and so on. All data is processed on the client with JavaScript.</p>
+
+<p>You can use <a href="https://hashcat.net/wiki/doku.php?id=rule_based_attack">hashcat rules</a> to generate a wordlist. By default, the generator will use its own rules, which you can find here or click on <strong>"Show rules"</strong>.</p>
+
+<p>Follow the project on <a href="https://github.com/zzzteph/weakpass">Github</a> or <a href="https://zzzteph.github.io/weakpass/">pages</a></p>
+
+</div>
+
+
+
+<div class="field">
+  <label class="label">Words</label>
+   <p class="help">Separated by comma, whitespace or newline</p>
+  <div class="control">
+    <textarea class="textarea is-primary" v-model="inputData" id="input" placeholder="Put words of interest here..."></textarea> 
+  </div>
+</div>
+
+<div class="field is-grouped">
+  <div class="control">
+    <label class="checkbox">
+      <input type="checkbox" v-model="showRules">
+      Show rules
+    </label>
+  </div>
+  
+    <div class="control">
+    <label class="checkbox">
+      <input type="checkbox" v-model="filterWiFi">
+      WI-FI
+    </label>
+  </div>
+  
+  
+</div>
+
+
+
+<div class="field is-grouped">
+  <div class="control">
+    <button class="button is-link" @click="generate">Generate</button>
+  </div>
+</div>
+
+
+<div class="columns">
+<div class="column is-6">
+  <label class="label" id="count">Result</label>
+  <div class="control">
+    <textarea class="textarea is-primary" v-model="results" id="result" rows="25"></textarea> 
+  </div>
+</div>
+
+
+
+<div class="column is-6" v-if="showRules">
+  <label class="label">Rules</label>
+
+  <div class="field is-grouped">
+  <div class="control">
+    <button class="button is-link is-small" @click="setRules('default')">default</button>
+  </div>
+
+  <div class="control">
+    <button class="button is-link is-small" @click="setRules('nsa64')">nsa64</button>
+  </div>
+
+  <div class="control">
+    <button class="button is-link is-small" @click="setRules('hobo')">hob064</button>
+  </div>
+
+  <div class="control">
+    <button class="button is-link is-small" @click="setRules('top500')">top 500</button>
+  </div>
+
+
+  <div class="control">
+    <button class="button is-link is-small" @click="setRules('best64')">best64</button>
+  </div>
+</div>
+
+
+
+  <div class="control">
+    <textarea class="textarea is-primary" v-model="rulesData" id="rules" rows="25" placeholder="Rules">
+
+</textarea> 
+  </div>
+</div>
+</div>
+
+ </div>
+</section>
+</template>

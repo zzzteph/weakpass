@@ -3,7 +3,7 @@
 Here you can find the list of tools from weakpass.com for password and hash cracking in one place.
 
 - [Crack-JS](https://zzzteph.github.io/weakpass/crack-js/) - JS based online hash cracking
-- [Password Generator](https://zzzteph.github.io/weakpass/generator/) - generate a wordlist based on a set of words entered by the user.
+- [Password Generator](https://zzzteph.github.io/weakpass/passgen/dist/) - generate a wordlist based on a set of words entered by the user.
 
 # Crack-JS
 **Hash cracking immediately and only with your browser.**
@@ -19,7 +19,7 @@ Ever imagine cracking passwords in your browser? We're All Mad Here...
 
 This tool lets you quickly identify weak passwords just in seconds before launching your favourite tool. All data is processed on the client with JavaScript.
 
-With a build-in password generator, you can generate wordlists based on specific input data and use them immidiatly along with the rules. If you want to know more, take a look at [Password Generator](https://zzzteph.github.io/weakpass/generator/)
+With a build-in password generator, you can generate wordlists based on specific input data and use them immidiatly along with the rules. If you want to know more, take a look at [Password Generator](https://zzzteph.github.io/weakpass/passgen/dist/)
 
 There are several modes how you can use this tool:
 
@@ -39,11 +39,11 @@ https://user-images.githubusercontent.com/917422/223262105-c3350bea-cf58-4731-af
 
 
 # Passwords generator
-- Link: https://zzzteph.github.io/weakpass/generator/
+- Link: https://zzzteph.github.io/weakpass/passgen/dist/
 - Secondary: https://weakpass.com/generate
 
 <p align="center">
-  <img src="https://github.com/zzzteph/weakpass/blob/main/generator/sample.png?raw=true"  height="350">
+  <img src="https://github.com/zzzteph/weakpass/blob/main/passgen/sample.png?raw=true"  height="350">
 </p>
 
 The tool generates a wordlist based on a set of words entered by the user.

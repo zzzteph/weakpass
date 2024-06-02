@@ -9,7 +9,7 @@ Secondary: https://weakpass.com/generate
 
 
 <p align="center">
-  <img src="https://github.com/zzzteph/weakpass/blob/main/generator/sample.png?raw=true"  height="350">
+  <img src="https://github.com/zzzteph/weakpass/blob/main/passgen/sample.png?raw=true"  height="350">
 </p>
 
 

@@ -10,7 +10,9 @@ const top500Rules="OgpsClsKWyBbClsgWyBbIFsKWyBbIFsKewp7IHsKJDEKWyBbIFsgWyBbCnIKe
 
 const inputData = ref('');
 const rulesData = ref(atob(defaultRules));
-const filterWiFi = ref(false);
+const filterLength = ref(false);
+const filterSpecial = ref(false);
+const filterNumber = ref(false);
 const showRules = ref(true);
 const results = ref('');
 
@@ -24,7 +26,7 @@ const generate = () => {
     for (let rule of rules) {
         let ruleResult = applyRule(string, rule);
       if (ruleResult !== false) {
-        if (filterWiFi.value && ruleResult.length < 8) continue;
+        if (filterValue(ruleResult)===false) continue;
         list.add(ruleResult);
       }
     }
@@ -35,14 +37,56 @@ const generate = () => {
 
 
 
-// Watch the filterWiFi value
-watch(filterWiFi, (newValue) => {
+
+watch(filterLength, (newValue) => {
   if (newValue === true) {
-    filterResultWiFi();
+    filterResultLength();
   }
 });
 
-const filterResultWiFi = () => {
+
+watch(filterSpecial, (newValue) => {
+  if (newValue === true) {
+    filterResultSpecial();
+  }
+});
+
+
+
+watch(filterNumber, (newValue) => {
+  if (newValue === true) {
+    filterResultNumber();
+  }
+});
+
+
+
+function filterValue(string)
+{
+    const specialCharPattern = /[^a-zA-Z0-9]/;
+    const numberPattern = /[0-9]/;
+    if(filterLength.value)
+    {
+        if(string.length<8)return false;
+    }
+
+    if(filterNumber.value)
+    {
+        if(!numberPattern.test(string))return false;
+    }
+
+    if(filterSpecial.value)
+    {
+        if(!specialCharPattern.test(string))return false;
+    }
+
+return true;
+}
+
+
+
+
+const filterResultLength = () => {
   let res_data = results.value.split(/\n/).filter((v, i, a) => a.indexOf(v) === i && (v === "0" || v));
   let list = new Set();
   for (let string of res_data) {
@@ -52,6 +96,28 @@ const filterResultWiFi = () => {
   results.value = Array.from(list).join('\n');
 };
 
+
+const filterResultSpecial = () => {
+  let res_data = results.value.split(/\n/).filter((v, i, a) => a.indexOf(v) === i && (v === "0" || v));
+  let list = new Set();
+  const specialCharPattern = /[^a-zA-Z0-9]/;
+  for (let string of res_data) {
+        if(!specialCharPattern.test(string))continue;
+        list.add(string);
+  }
+  results.value = Array.from(list).join('\n');
+};
+
+const filterResultNumber = () => {
+  let res_data = results.value.split(/\n/).filter((v, i, a) => a.indexOf(v) === i && (v === "0" || v));
+  let list = new Set();
+  const numberPattern = /[0-9]/;
+  for (let string of res_data) {
+        if(!numberPattern.test(string))continue;
+        list.add(string);
+  }
+  results.value = Array.from(list).join('\n');
+};
 
 
 
@@ -399,12 +465,29 @@ function applyRule(string, rule) {
   
     <div class="control">
     <label class="checkbox">
-      <input type="checkbox" v-model="filterWiFi">
-      WI-FI
+      <input type="checkbox" v-model="filterLength">
+      Length > 8
     </label>
   </div>
   
   
+  <div class="control">
+    <label class="checkbox">
+      <input type="checkbox" v-model="filterSpecial">
+      Has special
+    </label>
+  </div>
+
+  <div class="control">
+    <label class="checkbox">
+      <input type="checkbox" v-model="filterNumber">
+      Has number
+    </label>
+  </div>
+
+
+
+
 </div>
 
 

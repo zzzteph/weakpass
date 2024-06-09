@@ -455,7 +455,7 @@ function applyRule(string, rule) {
   </div>
 </div>
 
-<div class="field is-grouped">
+<div class="field is-grouped is-hidden-mobile">
   <div class="control">
     <label class="checkbox">
       <input type="checkbox" v-model="showRules">
@@ -481,18 +481,49 @@ function applyRule(string, rule) {
   <div class="control">
     <label class="checkbox">
       <input type="checkbox" v-model="filterNumber">
-      Has number
+      Has numbers
+    </label>
+  </div>
+</div>
+
+<div class="field is-hidden-desktop">
+  <div class="control">
+    <label class="checkbox">
+      <input type="checkbox" v-model="showRules">
+      Show rules
+    </label>
+  </div>
+  
+
+</div>  
+
+<div class="field is-grouped is-hidden-desktop"> 
+
+  <div class="control">
+    <label class="checkbox">
+      <input type="checkbox" v-model="filterLength">
+      Length > 8
+    </label>
+  </div>
+  <div class="control">
+    <label class="checkbox">
+      <input type="checkbox" v-model="filterSpecial">
+      Has special
     </label>
   </div>
 
-
-
-
+  <div class="control">
+    <label class="checkbox">
+      <input type="checkbox" v-model="filterNumber">
+      Has numbers
+    </label>
+  </div>
 </div>
 
 
 
-<div class="field is-grouped">
+
+<div class="field">
   <div class="control">
     <button class="button is-link" @click="generate">Generate</button>
   </div>

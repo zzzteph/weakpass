@@ -637,15 +637,18 @@ function md5crypt(password, salt) {
 })(Math);
 
 
-function ntlmHash(password) {
-    const passwordBuffer = str2buf(password);
-    const hashBuffer = md4(passwordBuffer);
-    return buf2hex(hashBuffer);
+
+
+
+function netntlmv2Hash(username,domain,challenge,blob,password)
+{
+    let wordsNtlm = CryptoJS.enc.Hex.parse(calculateHash(password, 'ntlm'));
+    var usernameDomain=CryptoJS.enc.Utf16LE.parse(username.toUpperCase()+domain)
+    var ntlmv2hash=CryptoJS.HmacMD5(usernameDomain,wordsNtlm);
+    var resultHash=CryptoJS.HmacMD5(CryptoJS.enc.Hex.parse(challenge+blob),ntlmv2hash);
+    return CryptoJS.enc.Hex.stringify(resultHash);
+    
 }
-
-
-
-
 
 
 export function verifyHash(password, hash, hashType) {
@@ -653,8 +656,8 @@ export function verifyHash(password, hash, hashType) {
 
         case 'jwt':
             return verifyJWT(password, hash);
-
-
+        case 'netntlmv2':
+            return verifyNetNTLMV2(password, hash);
         case 'ntlm':
             return verifyNTLM(password, hash);
         case 'md5':
@@ -679,6 +682,9 @@ export function verifyHash(password, hash, hashType) {
             throw new Error(`Unsupported hash type: ${hashType}`);
     }
 }
+
+
+
 
 
 export function calculateHash(password, hashType) {
@@ -717,6 +723,24 @@ export function calculateHash(password, hashType) {
 }
 
 
+
+function verifyNetNTLMV2(password,hash)
+{
+    let parts = hash.split(":");
+  
+    if (parts.length < 6) return false
+  
+    var username = parts[0];
+    var  domain = parts[2];
+    var  challenge = parts[3];
+    var  targetHash = parts[4];
+    var  blob = parts[5];
+  
+    var targetHashCalculated=netntlmv2Hash(username,domain,challenge,blob,password);
+
+    return targetHashCalculated === targetHash;
+
+}
 
 
 
@@ -821,4 +845,4 @@ function verifyBcrypt(password, hash) {
     return bcrypt.compareSync(password, hash);
 }
 
-export const availableHashTypes = ['md5crypt','sha256crypt','sha512crypt','ntlm', 'md5', 'sha1','sha256','sha512', 'bcrypt'];
+export const availableHashTypes = ['md5crypt','sha256crypt','sha512crypt','ntlm', 'md5', 'sha1','sha256','sha512', 'bcrypt','netntlmv2'];

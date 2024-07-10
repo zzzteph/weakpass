@@ -7,18 +7,6 @@ import CryptoJS  from "crypto-js";
 
 
 
-function generateRandomString(length) {
-    const CHAR_SET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    const charactersLength = CHAR_SET.length;
-
-    for (let i = 0; i < length; i++) {
-        result += CHAR_SET.charAt(Math.floor(Math.random() * charactersLength));
-    }
-
-    return result;
-}
-
 
 
 function rstr_sha512(s) {
@@ -790,9 +778,6 @@ function verifySHA512CRYPT(password, hash) {
    var formatted_hash="$6$"+salt+"$"+rest;
 
     const hashToVerify =sha512crypt(password,hash)
-    //check rounds
-
-
 
     
     return hashToVerify === formatted_hash;
@@ -846,11 +831,11 @@ function verifyHMAC_MD5(password, hash) {
     const parts = hash.split(":");
     let hashToVerify=null;
     if (parts.length == 2) 
-    {   //	fc741db0a2968c39d9c2a5cc75b05370
+    { 
        hashToVerify = CryptoJS.HmacMD5(password, parts[1]).toString(CryptoJS.enc.Hex);
        return hashToVerify === parts[0].toLowerCase();
     }
-    //bfd280436f45fa38eaacac3b00518f29:1234
+
     hashToVerify = CryptoJS.HmacMD5(password, password).toString(CryptoJS.enc.Hex);
     return hashToVerify === hash.toLowerCase();
 
@@ -862,11 +847,11 @@ function verifyHMAC_SHA1(password, hash) {
     const parts = hash.split(":");
     let hashToVerify=null;
     if (parts.length == 2) 
-    {   //	fc741db0a2968c39d9c2a5cc75b05370
+    { 
        hashToVerify = CryptoJS.HmacSHA1(password, parts[1]).toString(CryptoJS.enc.Hex);
        return hashToVerify === parts[0].toLowerCase();
     }
-    //bfd280436f45fa38eaacac3b00518f29:1234
+
     hashToVerify = CryptoJS.HmacSHA1(password, password).toString(CryptoJS.enc.Hex);
     return hashToVerify === hash.toLowerCase();
 
@@ -880,11 +865,10 @@ function verifyHMAC_SHA256(password, hash) {
     const parts = hash.split(":");
     let hashToVerify=null;
     if (parts.length == 2) 
-    {   //	fc741db0a2968c39d9c2a5cc75b05370
+    { 
        hashToVerify = CryptoJS.HmacSHA256(password, parts[1]).toString(CryptoJS.enc.Hex);
        return hashToVerify === parts[0].toLowerCase();
     }
-    //bfd280436f45fa38eaacac3b00518f29:1234
     hashToVerify = CryptoJS.HmacSHA256(password, password).toString(CryptoJS.enc.Hex);
     return hashToVerify === hash.toLowerCase();
 }
@@ -893,11 +877,10 @@ function verifyHMAC_SHA512(password, hash) {
     const parts = hash.split(":");
     let hashToVerify=null;
     if (parts.length == 2) 
-    {   //	fc741db0a2968c39d9c2a5cc75b05370
+    {
        hashToVerify = CryptoJS.HmacSHA512(password, parts[1]).toString(CryptoJS.enc.Hex);
        return hashToVerify === parts[0].toLowerCase();
     }
-    //bfd280436f45fa38eaacac3b00518f29:1234
     hashToVerify = CryptoJS.HmacSHA512(password, password).toString(CryptoJS.enc.Hex);
     return hashToVerify === hash.toLowerCase();
 }

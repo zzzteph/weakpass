@@ -636,13 +636,32 @@ function md5crypt(password, salt) {
     C.HmacMD4 = Hasher._createHmacHelper(MD4);
 })(Math);
 
+function mysql323Hash(password) {
+    let nr = 1345345333;
+    let nr2 = 305419889;
+    let add = 7;
 
+    for (let i = 0; i < password.length; i++) {
+        let ch = password.charCodeAt(i);
+        nr ^= ((nr & 63) + add) * ch + (nr << 8);
+        nr2 += (nr2 << 8) ^ nr;
+        add += ch;
+    }
+
+
+    let hash = (nr >>> 0).toString(16) + (nr2 >>> 0).toString(16);
+    while (hash.length < 16) {
+        hash = '0' + hash;
+    }
+
+    return hash;
+}
 
 
 
 function netntlmv2Hash(username,domain,challenge,blob,password)
 {
-    let wordsNtlm = CryptoJS.enc.Hex.parse(calculateHash(password, 'ntlm'));
+    let wordsNtlm = CryptoJS.enc.Hex.parse(CryptoJS.MD4(CryptoJS.enc.Utf16LE.parse(password)).toString().toUpperCase());
     var usernameDomain=CryptoJS.enc.Utf16LE.parse(username.toUpperCase()+domain)
     var ntlmv2hash=CryptoJS.HmacMD5(usernameDomain,wordsNtlm);
     var resultHash=CryptoJS.HmacMD5(CryptoJS.enc.Hex.parse(challenge+blob),ntlmv2hash);
@@ -664,10 +683,10 @@ export function verifyHash(password, hash, hashType) {
             return verifyMD5(password, hash);
         case 'sha1':
             return verifySHA1(password, hash);
-            case 'sha256':
+        case 'sha256':
                 return verifySHA256(password, hash);
-                case 'sha512':
-                    return verifySHA512(password, hash);
+        case 'sha512':
+                return verifySHA512(password, hash);
         case 'bcrypt':
             return verifyBcrypt(password, hash);
         case 'md5crypt':
@@ -677,7 +696,18 @@ export function verifyHash(password, hash, hashType) {
         case 'sha512crypt':
             return verifySHA512CRYPT(password, hash);       
 
+        case 'hmac-md5':
+                return verifyHMAC_MD5(password, hash);       
 
+        case 'hmac-sha1':
+                    return verifyHMAC_SHA1(password, hash);  
+        case 'hmac-sha256':
+                        return verifyHMAC_SHA256(password, hash);  
+        case 'hmac-sha512':
+                            return verifyHMAC_SHA512(password, hash);  
+        case 'mysql323':
+            return verify_mysql323(password, hash);  
+                            
         default:
             throw new Error(`Unsupported hash type: ${hashType}`);
     }
@@ -686,41 +716,6 @@ export function verifyHash(password, hash, hashType) {
 
 
 
-
-export function calculateHash(password, hashType) {
-    switch (hashType) {
-
-        case 'sha256':
-            return CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
-            case 'sha512':
-                return CryptoJS.SHA512(password).toString(CryptoJS.enc.Hex);
-
-        case 'ntlm':
-            return  CryptoJS.MD4(CryptoJS.enc.Utf16LE.parse(password)).toString().toUpperCase();
-        case 'md5':
-            return  CryptoJS.MD5(password).toString(CryptoJS.enc.Hex);
-        case 'sha1':
-            return CryptoJS.SHA1(password).toString(CryptoJS.enc.Hex);
-        case 'bcrypt':
-
-          bcrypt.setRandomFallback((len) => {  const buf = new Uint8Array(len);
-            for (let i = 0; i < len; i++) {
-                buf[i] = Math.floor(Math.random() * 256);
-            }
-            return buf; });
-            return bcrypt.hashSync(password, 8);
-
-        case "md5crypt":
-            return md5crypt(password,generateRandomString(8));
-        case "sha256crypt":
-            return sha256crypt(password,generateRandomString(8));
-        case "sha512crypt":
-            return sha512crypt(password,generateRandomString(8));
-
-        default:
-            throw new Error(`Unsupported hash type: ${hashType}`);
-    }
-}
 
 
 
@@ -821,23 +816,23 @@ function verifyNTLM(password, hash) {
 
 function verifyMD5(password, hash) {
     const hashToVerify = CryptoJS.MD5(password).toString(CryptoJS.enc.Hex);
-    return hashToVerify === hash;
+    return hashToVerify === hash.toLowerCase();
 }
 
 function verifySHA1(password, hash) {
     const hashToVerify = CryptoJS.SHA1(password).toString(CryptoJS.enc.Hex);
-    return hashToVerify === hash;
+    return hashToVerify === hash.toLowerCase();
 }
 
 function verifySHA256(password, hash) {
     const hashToVerify = CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
-    return hashToVerify === hash;
+    return hashToVerify === hash.toLowerCase();
 }
 
 
 function verifySHA512(password, hash) {
     const hashToVerify = CryptoJS.SHA512(password).toString(CryptoJS.enc.Hex);
-    return hashToVerify === hash;
+    return hashToVerify === hash.toLowerCase();
 }
 
 
@@ -845,4 +840,77 @@ function verifyBcrypt(password, hash) {
     return bcrypt.compareSync(password, hash);
 }
 
-export const availableHashTypes = ['md5crypt','sha256crypt','sha512crypt','ntlm', 'md5', 'sha1','sha256','sha512', 'bcrypt','netntlmv2'];
+
+function verifyHMAC_MD5(password, hash) {
+
+    const parts = hash.split(":");
+    let hashToVerify=null;
+    if (parts.length == 2) 
+    {   //	fc741db0a2968c39d9c2a5cc75b05370
+       hashToVerify = CryptoJS.HmacMD5(password, parts[1]).toString(CryptoJS.enc.Hex);
+       return hashToVerify === parts[0].toLowerCase();
+    }
+    //bfd280436f45fa38eaacac3b00518f29:1234
+    hashToVerify = CryptoJS.HmacMD5(password, password).toString(CryptoJS.enc.Hex);
+    return hashToVerify === hash.toLowerCase();
+
+}
+
+function verifyHMAC_SHA1(password, hash) {
+    
+    //
+    const parts = hash.split(":");
+    let hashToVerify=null;
+    if (parts.length == 2) 
+    {   //	fc741db0a2968c39d9c2a5cc75b05370
+       hashToVerify = CryptoJS.HmacSHA1(password, parts[1]).toString(CryptoJS.enc.Hex);
+       return hashToVerify === parts[0].toLowerCase();
+    }
+    //bfd280436f45fa38eaacac3b00518f29:1234
+    hashToVerify = CryptoJS.HmacSHA1(password, password).toString(CryptoJS.enc.Hex);
+    return hashToVerify === hash.toLowerCase();
+
+
+
+    
+}
+
+
+function verifyHMAC_SHA256(password, hash) {
+    const parts = hash.split(":");
+    let hashToVerify=null;
+    if (parts.length == 2) 
+    {   //	fc741db0a2968c39d9c2a5cc75b05370
+       hashToVerify = CryptoJS.HmacSHA256(password, parts[1]).toString(CryptoJS.enc.Hex);
+       return hashToVerify === parts[0].toLowerCase();
+    }
+    //bfd280436f45fa38eaacac3b00518f29:1234
+    hashToVerify = CryptoJS.HmacSHA256(password, password).toString(CryptoJS.enc.Hex);
+    return hashToVerify === hash.toLowerCase();
+}
+
+function verifyHMAC_SHA512(password, hash) {
+    const parts = hash.split(":");
+    let hashToVerify=null;
+    if (parts.length == 2) 
+    {   //	fc741db0a2968c39d9c2a5cc75b05370
+       hashToVerify = CryptoJS.HmacSHA512(password, parts[1]).toString(CryptoJS.enc.Hex);
+       return hashToVerify === parts[0].toLowerCase();
+    }
+    //bfd280436f45fa38eaacac3b00518f29:1234
+    hashToVerify = CryptoJS.HmacSHA512(password, password).toString(CryptoJS.enc.Hex);
+    return hashToVerify === hash.toLowerCase();
+}
+
+
+function verify_mysql323(password,hash) {
+    let calculatedHash = mysql323Hash(password);
+    return calculatedHash.toLowerCase() === hash.toLowerCase();
+
+
+}
+
+
+
+
+export const availableHashTypes = ['md5crypt','sha256crypt','sha512crypt','ntlm', 'md5', 'sha1','sha256','sha512', 'bcrypt','netntlmv2','hmac-md5','hmac-sha1','hmac-sha256','hmac-sha512','mysql323'];

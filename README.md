@@ -9,7 +9,7 @@ Curious about the folder structure?
 - TBA
 
 
-# Passwords generator
+# Passgen - passwords generator
 - Link: https://zzzteph.github.io/weakpass/tools/passgen/dist/
 - Secondary: https://weakpass.com/tools/passgen
 
@@ -21,3 +21,17 @@ The tool generates a wordlist based on a set of words entered by the user.
 For example, during penetration testing, you need to gain access to some service, device, account, or Wi-Fi network that is password protected. For example, let it be the _Wi-Fi_ network of **EvilCorp**. Sometimes, a password is a combination of _device/network/organization_ name with some date, special character, etc. Therefore, it is simpler and easier to test some combinations before launching more complex and time-consuming checks. For example, cracking a _Wi-Fi_ password with a wordlist can take several hours and can fail, even if you choose a [great wordlist](https://weakpass.com/wordlist/1950) because there was no such password in it like **Evilcorp2019**. 
 
 Therefore, using the generated wordlist, it is possible to organize a targeted and effective online password check.
+
+
+# Lookup - Range Hash lookup Tool
+
+Perform secure password hash lookups using the Range API without submitting sensitive data to the server.
+
+-https://zzzteph.github.io/weakpass/tools/lookup/dist/
+- [https://weakpass.com/tools/lookup](https://weakpass.com/tools/lookup)
+
+Reveal passwords for MD5, NTLM, SHA1, or SHA256 hashes using the precomputed `weakpass4.merged.txt` file without sending your hash to the backend. The primary advantage is that all hash checks are done client-side, ensuring that your data remains secure and private.
+
+Additionally, you can host and build the database for this tool locally and in-house. To do so, use one of the precomputed tables available [here](https://weakpass.com/pre-computed) and set up an API to serve hash ranges by value.
+
+A server example that "works" with this database structure can be found in the repository.

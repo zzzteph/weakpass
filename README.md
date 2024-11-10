@@ -1,49 +1,20 @@
-# Weakpass tools
+# Weakpass
 
 Here you can find the list of tools from weakpass.com for password and hash cracking in one place.
 
-- [Crack-JS](https://zzzteph.github.io/weakpass/crack-js/) - JS based online hash cracking
-- [Password Generator](https://zzzteph.github.io/weakpass/passgen/dist/) - generate a wordlist based on a set of words entered by the user.
+Curious about the folder structure?
 
-# Crack-JS
-**Hash cracking immediately and only with your browser.**
-- Link: https://zzzteph.github.io/weakpass/crack-js/
-- Secondary: https://weakpass.com/crack-js
-
-<p align="center">
-  <img src="https://github.com/zzzteph/weakpass/blob/main/crack-js/sample.PNG?raw=true"  height="350">
-</p>
-
-
-Ever imagine cracking passwords in your browser? We're All Mad Here...
-
-This tool lets you quickly identify weak passwords just in seconds before launching your favourite tool. All data is processed on the client with JavaScript.
-
-With a build-in password generator, you can generate wordlists based on specific input data and use them immidiatly along with the rules. If you want to know more, take a look at [Password Generator](https://zzzteph.github.io/weakpass/passgen/dist/)
-
-There are several modes how you can use this tool:
-
-- **Magic crack** - try to crack all your hashes at once with preset templates.
-- **Custom** - you can specify own settings, wordlist and rules.
-
-Supported hash types: md5, sha1, sha256, sha512, JWT, ntlm, md5crypt, sha256crypt, sha512crypt, etc. and  **TBA**
-
-## How-to
-
-
-
-https://user-images.githubusercontent.com/917422/223262105-c3350bea-cf58-4731-af8c-a95053676343.mp4
-
-
-
+- tools - list of tools from weakpass.com for password and hash cracking in one place.
+- online.rule
+- TBA
 
 
 # Passwords generator
-- Link: https://zzzteph.github.io/weakpass/passgen/dist/
-- Secondary: https://weakpass.com/generate
+- Link: https://zzzteph.github.io/weakpass/tools/passgen/dist/
+- Secondary: https://weakpass.com/tools/passgen
 
 <p align="center">
-  <img src="https://github.com/zzzteph/weakpass/blob/main/passgen/sample.png?raw=true"  height="350">
+  <img src="https://github.com/zzzteph/weakpass/blob/main/tools/passgen/sample.png?raw=true"  height="350">
 </p>
 
 The tool generates a wordlist based on a set of words entered by the user.

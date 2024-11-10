@@ -1,0 +1,3 @@
+[submodule "libs/hashcat-rules-js"]
+	path = libs/hashcat-rules-js
+	url = git@github.com:zzzteph/hashcat-rules-js.git

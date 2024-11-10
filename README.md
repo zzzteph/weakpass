@@ -4,7 +4,7 @@ Here you can find the list of tools from weakpass.com for password and hash crac
 
 Curious about the folder structure?
 
-- tools - list of tools from weakpass.com for password and hash cracking in one place.
+- **tools** - list of tools from weakpass.com for password and hash cracking in one place.
 - online.rule
 - TBA
 

@@ -10,7 +10,18 @@ const crackWorker = ref(null);
 const useRules = ref(false);
 const ruleUrl = ref('');
 const wordlistUrl=ref('https://weakpass.com/api/v1/wordlists/rockyou.txt');
+const mainTab = ref('hashes');
+const attackTab = ref('files');
 
+
+
+
+const wordlistFile = ref(null);
+const wordlistName = ref('');
+
+
+const rulesFile = ref(null);
+const rulesName = ref('');
 
 
 const benchmarkWorker = ref(null);
@@ -49,7 +60,7 @@ const foundEntries = ref([]);
 
 
 
-const crackWordlistOnline = () => {
+const runCrackWorker = () => {
     if (crackWorker.value) {
         let shouldRestart = confirm("A worker is already running. Do you want to restart it?");
         if (!shouldRestart) return;
@@ -57,8 +68,22 @@ const crackWordlistOnline = () => {
     }
 
     if (!crackWorker.value) {
-      crackWorker.value = new Worker(new URL('./workers/wordlist.js', import.meta.url), { type: 'module' });
-        
+
+      if(attackTab.value=="files")
+            crackWorker.value = new Worker(new URL('./workers/files.js', import.meta.url), { type: 'module' });
+      else if(attackTab.value=="online")
+            crackWorker.value = new Worker(new URL('./workers/online.js', import.meta.url), { type: 'module' });
+      else if(attackTab.value=="text")
+           crackWorker.value = new Worker(new URL('./workers/text.js', import.meta.url), { type: 'module' });
+      else
+      {
+         stopCrackWorker();
+         logMessage("undefined attackType="+attackTab.value);
+         return;
+      }
+      
+
+         
       crackWorker.value.onmessage = (event) => {
 
          if(event.data.type=="status")
@@ -82,14 +107,24 @@ const crackWordlistOnline = () => {
             }
         };
     }
-    crackWorker.value.postMessage({
-    action: 'start',
-    useRules: useRules.value,
-    ruleUrl: ruleUrl.value,
-    wordlistUrl: wordlistUrl.value,
-    hashEntries: hashEntries.value,
-    selectedHashType:selectedHashType.value
-});
+
+
+
+      if(attackTab.value=="online")
+      {
+       crackWorker.value.postMessage({    action: 'start',    useRules: useRules.value,    ruleUrl: ruleUrl.value,    wordlistUrl: wordlistUrl.value,    hashEntries: hashEntries.value,    selectedHashType:selectedHashType.value});
+      }    
+      else if(attackTab.value=="files")
+      {
+       crackWorker.value.postMessage({    action: 'start',    useRules: useRules.value,    wordlistFile: wordlistFile.value,    rulesFile: rulesFile.value});
+      }  
+      else
+      {
+         stopCrackWorker();
+         logMessage("undefined attackType="+attackTab.value);
+         return;
+      }
+
 
    logMessage("crackWorker started");
 
@@ -134,6 +169,9 @@ const benchmarkRun = () => {
 };
 
 
+
+
+
 const stopCrackWorker = () => {
 
     if (crackWorker!=null && crackWorker.value!=null) {
@@ -172,13 +210,24 @@ onBeforeUnmount(() => {
 });
 
 
+const fileSizeDisplay = computed(() => {
+  if (fileSize.value < 1024) return `${fileSize.value} bytes`;
+  if (fileSize.value < 1024 * 1024) return `${(fileSize.value / 1024).toFixed(2)} KB`;
+  return `${(fileSize.value / (1024 * 1024)).toFixed(2)} MB`;
+});
+
+function handleWordlistSelect(event) {
+   wordlistFile.value = event.target.files[0];
+   wordlistName.value = wordlistFile.value ? wordlistFile.value.name : '';
+}
+
+function handleRulesSelect(event) {
+   rulesFile.value = event.target.files[0];
+   rulesName.value = rulesFile.value ? rulesFile.value.name : '';
+}
 
 
 
-
-
-   const mainTab = ref('hashes');
-   const attackTab = ref('text');
    const changeMainTab = (tab) => {
        mainTab.value = tab;
    };
@@ -314,6 +363,13 @@ onBeforeUnmount(() => {
                         </div>
                     </div>
 
+                   
+                        <div v-if="!isCrackWorkerRunning" class="control">
+                           <button class="button is-link" @click="runCrackWorker">Crack</button>
+                        </div>
+                        <div v-if="isCrackWorkerRunning" class="control" id="button_stop">
+                              <button class="button is-danger" @click="stopCrackWorker">Stop</button>
+                        </div>
                 </div>
             </div>
 
@@ -338,9 +394,58 @@ onBeforeUnmount(() => {
                <div class="column">
                   <div class="tabs is-boxed">
                      <ul>
+                        <li :class="{ 'is-active': attackTab === 'files' }"><a  @click="changeAttackTab('files')">Files</a></li>
                         <li :class="{ 'is-active': attackTab === 'text' }"><a  @click="changeAttackTab('text')">Text</a></li>
                         <li :class="{ 'is-active': attackTab === 'online' }" ><a  @click="changeAttackTab('online')">Online</a></li>
                      </ul>
+                  </div>
+
+
+
+                  <div  v-if="attackTab === 'files'">
+                     <div class="field">
+                        <label class="label">Wordlist file</label>
+                        <div class="control">
+                     <div class="file">
+                     <label class="file-label">
+                        <input class="file-input" type="file"  @change="handleWordlistSelect" />
+                        <span class="file-cta">
+                           <span class="file-label" v-if="wordlistName">{{ wordlistName }}</span>
+                           <span class="file-label" v-else> Choose a file… </span>
+                           
+                        </span>
+                       
+                     </label>
+                     </div>
+                  </div>
+               </div>
+               <div class="field">
+                        <label class="checkbox">
+                        <input type="checkbox" v-model="useRules">
+                        Use Rules
+                        </label>
+                     </div>
+
+                     <div class="field" v-if="useRules">
+                        <label class="label">Rules file</label>
+                        <div class="control">
+                     <div class="file">
+                     <label class="file-label">
+                        <input class="file-input" type="file"  @change="handleRulesSelect" />
+                        <span class="file-cta">
+                           <span class="file-label" v-if="ruleName">{{ ruleName }}</span>
+                           <span class="file-label" v-else> Choose a file… </span>
+                           
+                        </span>
+                       
+                     </label>
+                     </div>
+                  </div>
+               </div>
+
+
+
+               
                   </div>
 
 
@@ -358,25 +463,11 @@ onBeforeUnmount(() => {
                      <div class="columns">
                         <div class="column is-half">
                            Wordlist
-                           <textarea class="textarea is-primary"  id="passwords" rows="25" placeholder="Passwords">
-                           !QAZxsw2
-                           !root
-                           0123456789
-                           0392a0
-                           0987654321
-                           102030
-                           10203040
-                           112233
-                           </textarea> 
+                           <textarea class="textarea is-primary"  id="passwords" rows="25" placeholder="Passwords"></textarea> 
                         </div>
                         <div class="column is-half">
                            Rules
-                           <textarea class="textarea is-primary"  id="rules" rows="25" placeholder="Rules">
-                           :
-                           c
-                           u
-                           C
-                           </textarea> 
+                           <textarea class="textarea is-primary"  id="rules" rows="25" placeholder="Rules"></textarea> 
                         </div>
                      </div>
                   </div>
@@ -404,14 +495,7 @@ onBeforeUnmount(() => {
                         </div>
                      </div>
 
-                     <div class="field is-grouped">
-                        <div v-if="!isCrackWorkerRunning" class="control">
-                           <button class="button is-link" @click="crackWordlistOnline">Crack</button>
-                        </div>
-                        <div v-if="isCrackWorkerRunning" class="control" id="button_stop">
-                              <button class="button is-danger" @click="stopCrackWorker">Stop</button>
-                        </div>
-                     </div>
+
 
 
                   </div>

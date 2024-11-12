@@ -53,7 +53,7 @@ const hashesInput = ref('');
 
 
 const hashEntries = computed(() => {
-  return hashesInput.value.split('\n').filter(entry => entry.trim() !== '');
+  return hashesInput.value.split('\n').map(entry => entry.trim()).filter(entry => entry !== '');
 });
 const foundEntries = ref([]);
 
@@ -116,7 +116,7 @@ const runCrackWorker = () => {
       }    
       else if(attackTab.value=="files")
       {
-       crackWorker.value.postMessage({    action: 'start',    useRules: useRules.value,    wordlistFile: wordlistFile.value,    rulesFile: rulesFile.value});
+       crackWorker.value.postMessage({    action: 'start',    useRules: useRules.value,    wordlistFile: wordlistFile.value,   hashEntries: hashEntries.value, rulesFile: rulesFile.value,    selectedHashType:selectedHashType.value});
       }  
       else
       {
@@ -223,6 +223,7 @@ function handleWordlistSelect(event) {
 
 function handleRulesSelect(event) {
    rulesFile.value = event.target.files[0];
+   console.log(rulesFile.value.name );
    rulesName.value = rulesFile.value ? rulesFile.value.name : '';
 }
 
@@ -373,18 +374,6 @@ function handleRulesSelect(event) {
                 </div>
             </div>
 
-
-            <div class="column is-12 ml-auto">
-                <div class="notification is-primary" id="notify">Done!</div>
-            </div>
-            <div class="column is-12 ml-auto">
-                <div class="field has-addons" id="div_progress">
-                    <p class="control is-expanded">
-                        <progress class="progress is-medium" id="progress" value="0" max="100"></progress>
-                    </p>
-                </div>
-            </div>
-
         </div>
 
          
@@ -433,7 +422,7 @@ function handleRulesSelect(event) {
                      <label class="file-label">
                         <input class="file-input" type="file"  @change="handleRulesSelect" />
                         <span class="file-cta">
-                           <span class="file-label" v-if="ruleName">{{ ruleName }}</span>
+                           <span class="file-label" v-if="rulesName">{{ rulesName }}</span>
                            <span class="file-label" v-else> Choose a file… </span>
                            
                         </span>

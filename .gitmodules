@@ -1,3 +1,6 @@
 [submodule "libs/hashcat-rules-js"]
 	path = libs/hashcat-rules-js
 	url = git@github.com:zzzteph/hashcat-rules-js.git
+[submodule "tools/crack-js"]
+	path = tools/crack-js
+	url = git@github.com:zzzteph/crack-js.git

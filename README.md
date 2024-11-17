@@ -40,3 +40,27 @@ Reveal passwords for MD5, NTLM, SHA1, or SHA256 hashes using the precomputed `we
 Additionally, you can host and build the database for this tool locally and in-house. To do so, use one of the precomputed tables available [here](https://weakpass.com/pre-computed) and set up an API to serve hash ranges by value.
 
 A server example that "works" with this database structure can be found in the repository.
+
+
+
+
+# Passcheck - Has your password been compromised?
+
+
+Discover if your password is in the weakpass_4 wordlist or vulnerable to advanced rule-based attacks.
+
+**Tool Link:** [https://weakpass.com/tools/passcheck](https://weakpass.com/tools/passcheck)
+
+<p align="center">
+  <img src="https://github.com/zzzteph/weakpass/blob/main/tools/passcheck/passcheck.PNG?raw=true"  height="350">
+</p>
+
+
+This tool checks if your password exists in the **weakpass_4.merged** wordlist using a range lookup API. 
+
+**But what if someone decided to use rule-based attack? Is your password safe for rule-based attacks?**
+Beyond that, it simulates rule-based attacks by applying "reverse" hashcat rules to identify potential candidates that could be used with the rules to crack your password.
+
+## Key Features
+- **Wordlist check** - Verifies if your password is found in the weakpass_4.merged wordlist.
+- **Rule-Based attack simulation** - Generates candidates and tests if your password is vulnerable to rule-based cracking techniques.

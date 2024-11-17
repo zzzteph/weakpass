@@ -1,4 +1,5 @@
-# Passcheck - Range Hash Lookup Tool
+# Passcheck - Has your password been compromised?
+
 
 Discover if your password is in the weakpass_4 wordlist or vulnerable to advanced rule-based attacks.
 
@@ -7,11 +8,11 @@ Discover if your password is in the weakpass_4 wordlist or vulnerable to advance
 This tool checks if your password exists in the **weakpass_4.merged** wordlist using a range lookup API. 
 
 **But what if someone decided to use rule-based attack? Is your password safe for rule-based attacks?**
-Beyond that, it simulates rule-based attacks by applying "reverse" hashcat rules to identify potential candidates that could crack your password.
+Beyond that, it simulates rule-based attacks by applying "reverse" hashcat rules to identify potential candidates that could be used with the rules to crack your password.
 
 ## Key Features
-- **Wordlist Check** - Verifies if your password is found in the weakpass_4.merged wordlist.
-- **Rule-Based Attack Simulation** - Generates candidates and tests if your password is vulnerable to rule-based cracking techniques.
+- **Wordlist check** - Verifies if your password is found in the weakpass_4.merged wordlist.
+- **Rule-Based attack simulation** - Generates candidates and tests if your password is vulnerable to rule-based cracking techniques.
 
 
 ## Project setup

@@ -2,18 +2,22 @@
 import { ref,onMounted,computed,onBeforeUnmount,watch   } from 'vue';
 import hashcat from 'crack-js';
 
+let taskId = ref(1);
+const tasks = ref([]);
+
+
 const availableHashTypes = ref([]);
 const selectedHashType = ref('');
 
 const crackWorker = ref(null);
-//online actions
-const useRules = ref(false);
-const ruleUrl = ref('');
-const wordlistUrl=ref('https://weakpass.com/api/v1/wordlists/rockyou.txt');
+
 const mainTab = ref('hashes');
 const attackTab = ref('files');
 
 
+
+const hashFile = ref(null);
+const hashFileName = ref('');
 
 
 const wordlistFile = ref(null);
@@ -58,72 +62,65 @@ const hashEntries = computed(() => {
 const foundEntries = ref([]);
 
 
+const getWorkerByTaskID = (taskID) => {
+  const task = tasks.value.find((t) => t.id === taskID);
+  return task ? task.worker : null;
+};
 
-
+const getTaskByID = (taskID) => {
+  return tasks.value.find((task) => task.id === taskID) || null;
+};
 const runCrackWorker = () => {
-    if (crackWorker.value) {
-        let shouldRestart = confirm("A worker is already running. Do you want to restart it?");
-        if (!shouldRestart) return;
-        stopCrackWorker();
-    }
 
-    if (!crackWorker.value) {
 
-      if(attackTab.value=="files")
-            crackWorker.value = new Worker(new URL('./workers/files.js', import.meta.url), { type: 'module' });
-      else if(attackTab.value=="online")
-            crackWorker.value = new Worker(new URL('./workers/online.js', import.meta.url), { type: 'module' });
-      else if(attackTab.value=="text")
-           crackWorker.value = new Worker(new URL('./workers/text.js', import.meta.url), { type: 'module' });
-      else
-      {
-         stopCrackWorker();
-         logMessage("undefined attackType="+attackTab.value);
-         return;
-      }
-      
+   if (selectedHashType.value && hashFile.value && wordlistFile.value) {
+      const crackWorker = new Worker(new URL('./workers/test.js', import.meta.url), { type: 'module' });
 
-         
-      crackWorker.value.onmessage = (event) => {
-
-         if(event.data.type=="status")
+      crackWorker.onmessage = (event) => {
+      if(event.data.type=="status")
+         {
+            if(event.data.status=="running" )
             {
-               if(event.data.status=="done" || event.data.status=="stop" )
-               {
-                  stopCrackWorker();
-                  return;
-               }
+               getTaskByID(event.data.id).progress=event.data.progress;
+               console.log(event.data.progress);
             }
+         }
 
-            if(event.data.type=="found")
-            {
-               foundEntries.value.push({ hash:event.data.hash, password:event.data.password, type: event.data.type });
-
-            }
-
-            if(event.data.type=="log")
-            {
-               logMessage("crackWorker "+event.data.message);
-            }
-        };
-    }
+      };
 
 
+    tasks.value.push({
+      id: taskId.value,
+      worker: crackWorker,
+      hashFile: hashFile.value,
+      wordlistFile: wordlistFile.value,
+      rulesFile: rulesFile.value,
+      hashFileName:hashFileName.value,
+      wordlistName:wordlistName.value,
+      rulesName:rulesName.value,
+      selectedHashType: selectedHashType.value,
+      progress: 0, 
+    });
 
-      if(attackTab.value=="online")
-      {
-       crackWorker.value.postMessage({    action: 'start',    useRules: useRules.value,    ruleUrl: ruleUrl.value,    wordlistUrl: wordlistUrl.value,    hashEntries: hashEntries.value,    selectedHashType:selectedHashType.value});
-      }    
-      else if(attackTab.value=="files")
-      {
-       crackWorker.value.postMessage({    action: 'start',    useRules: useRules.value,    wordlistFile: wordlistFile.value,   hashEntries: hashEntries.value, rulesFile: rulesFile.value,    selectedHashType:selectedHashType.value});
-      }  
-      else
-      {
-         stopCrackWorker();
-         logMessage("undefined attackType="+attackTab.value);
-         return;
-      }
+    const task = getTaskByID(taskId.value);
+    task.worker.postMessage({    action: 'start',  id:task.id,   wordlistFile: task.wordlistFile,   hashFile: task.hashFile, rulesFile: task.rulesFile,    selectedHashType:task.selectedHashType});
+  
+    taskId.value++;
+
+    selectedHashType.value = '';
+    hashFileName.value='';
+    hashFile.value=null;
+    rulesName.value='';
+    wordlistName.value='';
+    wordlistFile.value=null;
+    rulesFile.value=null;
+    selectedHashType.value=null;
+    
+  } else {
+    alert('Please fill in all fields!');
+    return;
+  }
+
 
 
    logMessage("crackWorker started");
@@ -216,14 +213,19 @@ const fileSizeDisplay = computed(() => {
   return `${(fileSize.value / (1024 * 1024)).toFixed(2)} MB`;
 });
 
+function handleHashFileSelect(event) {
+   hashFile.value = event.target.files[0];
+   hashFileName.value = hashFile.value ? hashFile.value.name : '';
+}
+
 function handleWordlistSelect(event) {
    wordlistFile.value = event.target.files[0];
    wordlistName.value = wordlistFile.value ? wordlistFile.value.name : '';
 }
 
+
 function handleRulesSelect(event) {
    rulesFile.value = event.target.files[0];
-   console.log(rulesFile.value.name );
    rulesName.value = rulesFile.value ? rulesFile.value.name : '';
 }
 
@@ -246,11 +248,116 @@ function handleRulesSelect(event) {
                <h1 class="mb-5 is-size-1 is-size-3-mobile has-text-weight-bold">CRACK-JS</h1>
             </div>
 
+            <div class="column is-12 ml-auto"  v-for="(task, index) in tasks" :key="index" >
+               <div class="box">
+                  <progress class="progress" :value=task.progress max="100">{{ task.progress }}</progress>
+
+                  <p>Hash File: {{ task.hashfile }}</p>
+                  <p>Wordlist File: {{ task.wordlistfile }}</p>
+                  <p>Rules File: {{ task.rulesfile }}</p>
+                  <p>Hash Type: {{ task.type }}</p>
+                  <p>Status: {{ task.status }}</p>
+               </div>
+            </div>
+
+
+
+            <div class="column is-12 ml-auto">
+               <div class="box">
+                  
+
+                  <div class="field is-grouped">
+                                 <div class="control">
+                              <div class="file has-name">
+                              <label class="file-label">
+                                 <input class="file-input" type="file"  @change="handleHashFileSelect" />
+                                 <span class="file-cta">
+                                    
+                                    <span class="file-label"> Choose a hashfile … </span>
+                                    
+                                 </span>
+                                 <span class="file-name" v-if="hashFileName">{{ hashFileName }}</span>
+                              </label>
+                              </div>
+                           </div>
+                      
+
+
+                        
+                                 <div class="control" v-if="hashFile">
+                              <div class="file has-name">
+                              <label class="file-label">
+                                 <input class="file-input" type="file"  @change="handleWordlistSelect" />
+                                 <span class="file-cta">
+                                    
+                                    <span class="file-label"> Choose a wordlist … </span>
+                                    
+                                 </span>
+                                 <span class="file-name" v-if="wordlistName">{{ wordlistName }}</span>
+                              </label>
+                              </div>
+                           </div>
+                            
+
+                           <div class="control" v-if="wordlistName">
+                              <div class="file has-name">
+                              <label class="file-label">
+                                 <input class="file-input" type="file"  @change="handleRulesSelect" />
+                                 <span class="file-cta">
+                                    
+                                    <span class="file-label" > Choose a rules... </span>
+                                    
+                                 </span>
+                                 <span class="file-name" v-if="rulesName">{{ rulesName }}</span>
+                              </label>
+                              </div>
+                           </div>
+                     
+
+
+                          
+
+                         
+
+
+                        </div>  
+
+
+                        <div class="field is-grouped"  v-if="wordlistName">
+                        <div class="control is-expanded">
+                           <div class="select is-fullwidth">
+                           <select v-model="selectedHashType" class="is-focused">
+                              <option disabled value="">Select hash type</option>
+                              <option v-for="(type, index) in availableHashTypes" :key="index" :value="type">
+                                 {{ type }}
+                              </option>
+                           </select>
+                           </div>
+                        </div>
+
+
+                           <div v-if="selectedHashType" class="control">
+                              <button class="button is-link" @click="runCrackWorker">Crack</button>
+                           </div>
+
+
+
+
+                        </div>
+
+
+
+
+
+               </div>
+            </div>
+
+
+
             <div class="column is-12 ml-auto">
                <div class="tabs is-boxed">
                   <ul>
                      <li :class="{ 'is-active': mainTab === 'hashes' }"><a  @click="changeMainTab('hashes')">Hashes</a></li>
-                     <li :class="{ 'is-active': mainTab === 'results' }" ><a  @click="changeMainTab('results')">Results</a></li>
                      <li :class="{ 'is-active': mainTab === 'benchmark' }" ><a  @click="changeMainTab('benchmark')">Benchmark</a></li>
                      <li :class="{ 'is-active': mainTab === 'logs' }" ><a  @click="changeMainTab('logs')">Logs</a></li>
                      <li :class="{ 'is-active': mainTab === 'status' }" ><a  @click="changeMainTab('status')">Status</a></li>
@@ -260,24 +367,6 @@ function handleRulesSelect(event) {
                   <div class="control">
                      <textarea class="textarea is-primary"  v-model="hashesInput"  rows="10"  placeholder="Each hash on new line"></textarea> 
                   </div>
-               </div>
-               <div   v-show="mainTab === 'results'">
-                  <table>
-                     <thead>
-                     <tr>
-                        <th>Hash</th>
-                        <th>Password</th>
-                        <th>Type</th>
-                     </tr>
-                     </thead>
-                     <tbody>
-                     <tr v-for="(entry, index) in foundEntries" :key="index">
-                        <td>{{ entry.hash }}</td>
-                        <td>{{ entry.password }}</td>
-                        <td>{{ entry.type }}</td>
-                     </tr>
-                     </tbody>
-                  </table>
                </div>
 
                <div v-show="mainTab === 'benchmark'">
@@ -349,161 +438,9 @@ function handleRulesSelect(event) {
          </div>
 
 
-         <div class="columns is-multiline is-align-items-center">
-
-            <div class="column is-12 ml-auto">
-                <div class="field is-grouped">
-
-                    <div class="control is-expanded">
-                        <div class="select is-fullwidth">
-                        <select v-model="selectedHashType" class="is-focused">
-                           <option v-for="(type, index) in availableHashTypes" :key="index" :value="type">
-                              {{ type }}
-                           </option>
-                        </select>
-                        </div>
-                    </div>
-
-                   
-                        <div v-if="!isCrackWorkerRunning" class="control">
-                           <button class="button is-link" @click="runCrackWorker">Crack</button>
-                        </div>
-                        <div v-if="isCrackWorkerRunning" class="control" id="button_stop">
-                              <button class="button is-danger" @click="stopCrackWorker">Stop</button>
-                        </div>
-                </div>
-            </div>
-
-        </div>
 
          
-         <div id="settings_panel">
 
-            <div class="columns">
-               <div class="column">
-                  <div class="tabs is-boxed">
-                     <ul>
-                        <li :class="{ 'is-active': attackTab === 'files' }"><a  @click="changeAttackTab('files')">Files</a></li>
-                        <li :class="{ 'is-active': attackTab === 'text' }"><a  @click="changeAttackTab('text')">Text</a></li>
-                        <li :class="{ 'is-active': attackTab === 'online' }" ><a  @click="changeAttackTab('online')">Online</a></li>
-                     </ul>
-                  </div>
-
-
-
-                  <div  v-if="attackTab === 'files'">
-                     <div class="field">
-                        <label class="label">Wordlist file</label>
-                        <div class="control">
-                     <div class="file">
-                     <label class="file-label">
-                        <input class="file-input" type="file"  @change="handleWordlistSelect" />
-                        <span class="file-cta">
-                           <span class="file-label" v-if="wordlistName">{{ wordlistName }}</span>
-                           <span class="file-label" v-else> Choose a file… </span>
-                           
-                        </span>
-                       
-                     </label>
-                     </div>
-                  </div>
-               </div>
-               <div class="field">
-                        <label class="checkbox">
-                        <input type="checkbox" v-model="useRules">
-                        Use Rules
-                        </label>
-                     </div>
-
-                     <div class="field" v-if="useRules">
-                        <label class="label">Rules file</label>
-                        <div class="control">
-                     <div class="file">
-                     <label class="file-label">
-                        <input class="file-input" type="file"  @change="handleRulesSelect" />
-                        <span class="file-cta">
-                           <span class="file-label" v-if="rulesName">{{ rulesName }}</span>
-                           <span class="file-label" v-else> Choose a file… </span>
-                           
-                        </span>
-                       
-                     </label>
-                     </div>
-                  </div>
-               </div>
-
-
-
-               
-                  </div>
-
-
-
-
-                  <div  v-if="attackTab === 'text'">
-                     <div class="field">
-                        <div class="control">
-                           <label class="checkbox">
-                           <input type="checkbox" id="use_rules">
-                           Use rules
-                           </label>
-                        </div>
-                     </div>
-                     <div class="columns">
-                        <div class="column is-half">
-                           Wordlist
-                           <textarea class="textarea is-primary"  id="passwords" rows="25" placeholder="Passwords"></textarea> 
-                        </div>
-                        <div class="column is-half">
-                           Rules
-                           <textarea class="textarea is-primary"  id="rules" rows="25" placeholder="Rules"></textarea> 
-                        </div>
-                     </div>
-                  </div>
-
-                  <div  v-if="attackTab === 'online'">
-
-                     <div class="field">
-                        <label class="checkbox">
-                        <input type="checkbox" v-model="useRules">
-                        Use Rules
-                        </label>
-                     </div>
-
-
-                     <div class="field" v-if="useRules">
-                        <label class="label">Rules URL</label>
-                        <div class="control">
-                        <input v-model="ruleUrl" class="input" type="text" placeholder="Enter Rule URL">
-                        </div>
-                     </div>
-                     <div class="field">
-                        <label class="label">Wordlists URL</label>
-                        <div class="control">
-                        <input v-model="wordlistUrl" class="input" type="text" placeholder="Enter Wordlist URL">
-                        </div>
-                     </div>
-
-
-
-
-                  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-               </div>
-            </div>
-         </div>
       </div>
    </section>
 </template>

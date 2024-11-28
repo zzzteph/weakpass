@@ -4,45 +4,88 @@ self.onmessage = async  (event) => {
     if (event.data.action === 'start') {
         console.log("START");
 
+
+
+            let hashes=new Set();
             const wordlistFile = event.data.wordlistFile;
-            const useRules = event.data.useRules;
+            const taskId = event.data.id;
             const rulesFile = event.data.rulesFile;
             const selectedHashType=event.data.selectedHashType;
-            let hashEntries=event.data.hashEntries;
+            const hashFile=event.data.hashFile;
+
 
             if(!hashcat.availableHashTypes.includes(selectedHashType))
+              {
+                  postMessage({ id:taskId,type:"error", message: 'Undefined hashtype' });
+                  postMessage({ id:taskId,type:"status", status: "error"});
+                  
+                  self.close();
+                  return;
+              }
+
+
+            //first parse the file and return number of hashes
+            //
+            let fileContent =false;
+            fileContent=await readFile(hashFile);
+            if(fileContent==false)
             {
-                postMessage({ type:"log", message: 'Undefined hashtype - ('+selectedHashType+')' });
-                postMessage({ type:"status", status: "done"});
-                self.close();
-                return;
-            }
-  
-            if (!Array.isArray(hashEntries) || hashEntries.length == 0) {
-                postMessage({ type:"log", message: 'Hash entries is empty  - ('+hashEntries+')' });
-                postMessage({ type:"status", status: "done"});
-                self.close();
-                return;
+              postMessage({ id:taskId,type:"error", message: 'Unable to read hash file '});
+              postMessage({ id:taskId,type:"status", status: "error"});
+              
+              self.close();
+              return;
             } 
-  
+              
+            for (const hashEntry of fileContent) {
+
+              if(hashcat.isValidHash(hashEntry,selectedHashType))
+              {
+                hashes.add(hashEntry);
+              }
+
+            }
+
+          console.log(hashes)
+
+
+
+            if (hashes.size == 0) {
+              postMessage({ id:taskId,type:"error", message: 'Zero hashes loaded for '+selectedHashType });
+              postMessage({ id:taskId,type:"status", status: "error"});
+              
+              self.close();
+              return;
+          } 
+
+          postMessage({ id:taskId,type:"parsedHashes", hashes: hashes });
             
 
+        //calculate possible ammount of time
+         let wordListCount = await getFileLinesCount(wordlistFile);
+         console.log(wordListCount);
 
+          let rulesCount = await getFileLinesCount(rulesFile);
+          console.log(rulesCount);
+          if(rulesCount==false || rulesCount==0)rulesCount=1;
+          let keySpace=hashes.size*wordListCount*rulesCount;
+          console.log(keySpace);
+          postMessage({ id:taskId,type:"keyspace", keySpace: keySpace });
+          //adjusted keyspace
+          keySpace=hashes.size*wordListCount;
+          let previousStatus=0;   
+          let currentProgress=0;
+          postMessage({ id:taskId,type:"status", status: "running"});
+          let hashEntries = [...hashes];
 
-
-
-
-
-
+            let countLine=0;
             const chunkSize=64 * 1024;
-            let countLines=0;
-            postMessage({ type:"log", message: "wordlistFile to use:"+wordlistFile.name});
 
             let offset = 0;
             let remainder = '';
           
-            let fileContent =false;
-            if(useRules) fileContent=await loadRules(rulesFile);
+            let rulesContent =false;
+            rulesContent=await readFile(rulesFile);
 
             let reader = new FileReader();
             while (offset < wordlistFile.size) {
@@ -55,18 +98,24 @@ self.onmessage = async  (event) => {
                   remainder = lines.pop();
                   
                   lines.forEach((line) => {
-                    console.log(line);
-                    if(useRules)
+                    countLine++;
+                    currentProgress=calcProgress(keySpace,countLine,hashEntries);
+                    if(currentProgress!==previousStatus)
+                    {
+                      postMessage({ id:taskId,type:"progress", progress: currentProgress});
+                      previousStatus=currentProgress;
+                    }
+                  if(rulesContent!==false)
                   {
                     
-                    for (const rule of fileContent) {
+                    for (const rule of rulesContent) {
                       let modifiedLine=hashcatRule.applyRule(line.trim(),rule);
-                      processHashes(hashEntries,modifiedLine,selectedHashType)
+                      processHashes(hashEntries,modifiedLine,selectedHashType,taskId)
                     }
                   }
                   else
                   {
-                    processHashes(hashEntries,line.trim(),selectedHashType)
+                    processHashes(hashEntries,line.trim(),selectedHashType,taskId)
                   }
 
                   });
@@ -84,47 +133,102 @@ self.onmessage = async  (event) => {
               console.log(remainder);
             }
 
-            console.log(countLines);
+
       
-
-            postMessage({ type:"status", status: "done"});
-            
+            postMessage({ id:taskId,type:"progress", progress: 100});
+            postMessage({ id:taskId,type:"status", status: "done"});
+        
     }
+           
   };
+function calcProgress(keyspace,count,hashes)
+{
+  if(hashes.length==0)return 100;
+  
+  
 
-  function loadRules(file) {
+  return Math.round(100*(count*hashes.length)/keyspace);
+}
+  function readFile(file) {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
+
+      if (!(file instanceof File)) {
+        resolve(false); // Return false if the input is not a File object
+        return;
+      }
+
+      let reader = new FileReader();
   
       reader.onload = (event) => {
-        const content = event.target.result;
-        const lines = content.split('\n').map(line => line.trim()).filter(line => line !== '');//trim and skip empty lines
-        const uniqueLines = Array.from(new Set(lines));
+        let content = event.target.result;
+        let lines = content.split('\n').map(line => line.trim()).filter(line => line !== '');//trim and skip empty lines
+        let uniqueLines = Array.from(new Set(lines));
         resolve(uniqueLines); // return only uniq rules
       };
   
-      reader.onerror = (error) => {
-        reject(error);
-      };
+      reader.onerror = () => resolve(false); // Return false if the file cannot be read
   
       reader.readAsText(file);
     });
   }
-  function processHashes(hashEntries, line, selectedHashType) {
+
+
+  function getFileLinesCount(file) {
+    return new Promise((resolve) => {
+      if (!(file instanceof File)) {
+        resolve(false); // Return false if the input is not a File object
+        return;
+      }
+  
+      let reader = new FileReader();
+      let offset = 0;
+      const chunkSize = 1024 * 1024; // Read in chunks (e.g., 1 MB)
+      let remainder = '';
+      let lineCount = 0;
+  
+      function readChunk() {
+        if (offset >= file.size) {
+          if (remainder.trim()) {
+            lineCount++;
+          }
+          resolve(lineCount);
+          return;
+        }
+  
+        const blob = file.slice(offset, offset + chunkSize);
+        reader.onload = (event) => {
+          const text = remainder + event.target.result;
+          const lines = text.split('\n');
+          remainder = lines.pop();
+          lineCount += lines.length;
+          offset += chunkSize;
+          readChunk();
+        };
+  
+        reader.onerror = () => resolve(false); // Return false if the file cannot be read
+  
+        reader.readAsText(blob);
+      }
+  
+      try {
+        readChunk();
+      } catch (error) {
+        resolve(false); // Handle any unexpected errors gracefully
+      }
+    });
+  }
+
+  function processHashes(hashEntries, line, selectedHashType, taskId) {
     for (let i = 0; i < hashEntries.length; i++) {
       const hash = hashEntries[i];
-      console.log(hash);
-      console.log(line);
-      console.log(selectedHashType);
-      console.log(hashcat.verifyHash(line, hash, selectedHashType));
       if (hashcat.verifyHash(line, hash, selectedHashType) === true) {
-        postMessage({
+        console.log(line);
+        postMessage({  
+          id:taskId,        
           type: "found",
           hash: hash,
-          password: line,
-          type: selectedHashType
+          password: line
         });
-        console.log(line);
         hashEntries.splice(i, 1);
         i--;
       }

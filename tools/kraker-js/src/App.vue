@@ -1,7 +1,7 @@
 <script setup>
 import { ref,onMounted,computed,onBeforeUnmount,watch   } from 'vue';
 import hashcat from 'crack-js';
-
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 let taskId = ref(1);
 const tasks = ref([]);
 
@@ -74,7 +74,7 @@ const runCrackWorker = () => {
 
 
    if (selectedHashType.value && hashFile.value && wordlistFile.value) {
-      const crackWorker = new Worker(new URL('./workers/test.js', import.meta.url), { type: 'module' });
+      const crackWorker = new Worker(new URL('./workers/files.js', import.meta.url), { type: 'module' });
 
       crackWorker.onmessage = (event) => {
       if(event.data.type=="status")
@@ -82,9 +82,41 @@ const runCrackWorker = () => {
             if(event.data.status=="running" )
             {
                getTaskByID(event.data.id).progress=event.data.progress;
-               console.log(event.data.progress);
             }
+            getTaskByID(event.data.id).status=event.data.status;
+
          }
+         if(event.data.type=="error")
+         {
+            getTaskByID(event.data.id).error=event.data.message;
+         }
+
+         if(event.data.type=="parsedHashes")
+         {
+
+            getTaskByID(event.data.id).hashes=event.data.hashes;
+            getTaskByID(event.data.id).hashCount=getTaskByID(event.data.id).hashes.size;
+         }
+         if(event.data.type=="keyspace")
+         {
+
+            getTaskByID(event.data.id).keyspace=event.data.keyspace;
+
+         }
+         if(event.data.type=="progress")
+         {
+
+            getTaskByID(event.data.id).progress=event.data.progress;
+
+         }
+
+         if(event.data.type=="progress")
+         {
+
+            getTaskByID(event.data.id).progress=event.data.progress;
+
+         }
+
 
       };
 
@@ -100,6 +132,13 @@ const runCrackWorker = () => {
       rulesName:rulesName.value,
       selectedHashType: selectedHashType.value,
       progress: 0, 
+      status:"todo",
+      hashCount:0,
+      revealedHashCount:0,
+      hashes:"",
+      revealed:"",
+      error:"",
+      keyspace:0
     });
 
     const task = getTaskByID(taskId.value);
@@ -250,13 +289,58 @@ function handleRulesSelect(event) {
 
             <div class="column is-12 ml-auto"  v-for="(task, index) in tasks" :key="index" >
                <div class="box">
-                  <progress class="progress" :value=task.progress max="100">{{ task.progress }}</progress>
 
-                  <p>Hash File: {{ task.hashfile }}</p>
-                  <p>Wordlist File: {{ task.wordlistfile }}</p>
-                  <p>Rules File: {{ task.rulesfile }}</p>
-                  <p>Hash Type: {{ task.type }}</p>
-                  <p>Status: {{ task.status }}</p>
+
+
+
+                  <article class="media">
+                     <div class="media-left">
+                        <span class="icon">
+                           <i class="fa-solid fa-spinner fa-spin" v-if="task.status=='running'"></i>
+                           <i class="fa-solid fa-circle-check"  v-if="task.status=='done'"></i>
+                           <i class="fa-solid fa-bug" v-if="task.status=='error'"></i>
+                              </span>
+                     </div>
+                     <div class="media-content">
+                        <div class="content">
+                        <p>
+                           <strong># {{ task.id }}</strong>
+                           <small>&nbsp;{{ task.error }}</small>
+                           <br />
+
+                           <progress v-if="task.status!=='done'" class="progress" :value=task.progress max="100">{{ task.progress }}</progress>
+                        </p>
+                        </div>
+                        <nav class="level is-mobile" v-if="task.hashes.size>0" >
+                        <div class="level-left">
+                           <a class="level-item" aria-label="reply">
+                              <span class="icon-text">
+                                    <span class="icon">
+                                       <i class="fa-solid fa-download"></i>
+                                    </span>
+                                    <span>Hashes  {{ task.hashes.size }}</span>
+                                    </span>
+                           </a>
+                           <a class="level-item" aria-label="retweet" v-if="task.revealed.size > 0">
+                              <span class="icon-text">
+                                    <span class="icon">
+                                       <i class="fa-solid fa-download"></i>
+                                    </span>
+                                    <span>Cleartext {{ task.revealed.size }}</span>
+                                    </span>
+                           </a>
+
+                        </div>
+                        </nav>
+                     </div>
+                  </article>
+
+
+
+
+                
+
+
                </div>
             </div>
 
@@ -266,6 +350,7 @@ function handleRulesSelect(event) {
                <div class="box">
                   
 
+                  
                   <div class="field is-grouped">
                                  <div class="control">
                               <div class="file has-name">

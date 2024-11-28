@@ -33,9 +33,7 @@ const benchmarkWorker = ref(null);
 const isBenchmarkWorkerRunning = computed(() => {
     return benchmarkWorker.value !== null;
 });
-const isCrackWorkerRunning = computed(() => {
-    return crackWorker.value !== null;
-});
+
 
 
 
@@ -56,16 +54,6 @@ const logMessage = (message) => {
 const hashesInput = ref('');
 
 
-const hashEntries = computed(() => {
-  return hashesInput.value.split('\n').map(entry => entry.trim()).filter(entry => entry !== '');
-});
-const foundEntries = ref([]);
-
-
-const getWorkerByTaskID = (taskID) => {
-  const task = tasks.value.find((t) => t.id === taskID);
-  return task ? task.worker : null;
-};
 
 const getTaskByID = (taskID) => {
   return tasks.value.find((task) => task.id === taskID) || null;
@@ -95,7 +83,7 @@ const runCrackWorker = () => {
          {
 
             getTaskByID(event.data.id).hashes=event.data.hashes;
-            getTaskByID(event.data.id).hashCount=getTaskByID(event.data.id).hashes.size;
+
          }
          if(event.data.type=="keyspace")
          {
@@ -110,10 +98,13 @@ const runCrackWorker = () => {
 
          }
 
-         if(event.data.type=="progress")
+         if(event.data.type=="update")
          {
+           
 
-            getTaskByID(event.data.id).progress=event.data.progress;
+            getTaskByID(event.data.id).cleartext.push((String)(event.data.hash)+":"+(String)(event.data.hash));
+        
+            
 
          }
 
@@ -133,10 +124,10 @@ const runCrackWorker = () => {
       selectedHashType: selectedHashType.value,
       progress: 0, 
       status:"todo",
-      hashCount:0,
-      revealedHashCount:0,
-      hashes:"",
-      revealed:"",
+
+
+      hashes:[],
+      cleartext:[],
       error:"",
       keyspace:0
     });
@@ -311,22 +302,22 @@ function handleRulesSelect(event) {
                            <progress v-if="task.status!=='done'" class="progress" :value=task.progress max="100">{{ task.progress }}</progress>
                         </p>
                         </div>
-                        <nav class="level is-mobile" v-if="task.hashes.size>0" >
+                        <nav class="level is-mobile" v-if="task.hashes.length>0" >
                         <div class="level-left">
                            <a class="level-item" aria-label="reply">
                               <span class="icon-text">
                                     <span class="icon">
                                        <i class="fa-solid fa-download"></i>
                                     </span>
-                                    <span>Hashes  {{ task.hashes.size }}</span>
+                                    <span>Hashes  {{ task.hashes.length }}</span>
                                     </span>
                            </a>
-                           <a class="level-item" aria-label="retweet" v-if="task.revealed.size > 0">
+                           <a class="level-item" aria-label="retweet" v-if="task.cleartext.length > 0">
                               <span class="icon-text">
                                     <span class="icon">
                                        <i class="fa-solid fa-download"></i>
                                     </span>
-                                    <span>Cleartext {{ task.revealed.size }}</span>
+                                    <span>Cleartext {{ task.cleartext.length }}</span>
                                     </span>
                            </a>
 

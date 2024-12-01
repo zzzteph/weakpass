@@ -22,8 +22,8 @@ async function processCracking(event)
 
   if(!hashcat.availableHashTypes.includes(selectedHashType))
     {
-        postMessage({ id:taskId,type:"error", message: 'Undefined hashtype' });
-        postMessage({ id:taskId,type:"status", status: "error"});
+        postMessage({  worker:"crack",id:taskId,type:"error", message: 'Undefined hashtype' });
+        postMessage({ worker:"crack",id:taskId,type:"status", status: "error"});
         
         self.close();
         return;
@@ -36,8 +36,8 @@ async function processCracking(event)
   fileContent=await readFile(hashFile);
   if(fileContent==false)
   {
-    postMessage({ id:taskId,type:"error", message: 'Unable to read hash file '});
-    postMessage({ id:taskId,type:"status", status: "error"});
+    postMessage({ worker:"crack",id:taskId,type:"error", message: 'Unable to read hash file '});
+    postMessage({worker:"crack", id:taskId,type:"status", status: "error"});
     
     self.close();
     return;
@@ -56,31 +56,38 @@ async function processCracking(event)
 
 
   if (hashes.size == 0) {
-    postMessage({ id:taskId,type:"error", message: 'Zero hashes loaded for '+selectedHashType });
-    postMessage({ id:taskId,type:"status", status: "error"});
+    postMessage({ worker:"crack",id:taskId,type:"error", message: 'Zero hashes loaded for '+selectedHashType });
+    postMessage({ worker:"crack",id:taskId,type:"status", status: "error"});
     
     self.close();
     return;
 } 
 let hashEntries = [...hashes];
-postMessage({ id:taskId,type:"parsedHashes", hashes: hashEntries });
+postMessage({ worker:"crack",id:taskId,type:"parsedHashes", hashes: hashEntries });
   
 
 //calculate possible ammount of time
 let wordListCount = await getFileLinesCount(wordlistFile);
-console.log(wordListCount);
 
+if(wordListCount==false || wordListCount==0)
+  {
+      postMessage({worker:"crack",id:taskId,type:"error", message: 'Wordlist file could not be read or empty' });
+      postMessage({ worker:"crack",id:taskId,type:"status", status: "error"});
+      self.close();
+      return;
+  }
 let rulesCount = await getFileLinesCount(rulesFile);
-console.log(rulesCount);
+
 if(rulesCount==false || rulesCount==0)rulesCount=1;
+
 let keySpace=hashes.size*wordListCount*rulesCount;
-console.log(keySpace);
-postMessage({ id:taskId,type:"keyspace", keySpace: keySpace });
+
+postMessage({worker:"crack", id:taskId,type:"keyspace", keySpace: keySpace });
 //adjusted keyspace
 keySpace=hashes.size*wordListCount;
 let previousStatus=0;   
 let currentProgress=0;
-postMessage({ id:taskId,type:"status", status: "running"});
+postMessage({ worker:"crack",id:taskId,type:"status", status: "running"});
 
 
   let countLine=0;
@@ -92,7 +99,11 @@ postMessage({ id:taskId,type:"status", status: "running"});
   let rulesContent =false;
   rulesContent=await readFile(rulesFile);
 
+
+
+  let tickCount=0;
   let reader = new FileReader();
+  let tmpKeyspace=0;
   while (offset < wordlistFile.size) {
     let blob = wordlistFile.slice(offset, offset + chunkSize);
     
@@ -105,9 +116,19 @@ postMessage({ id:taskId,type:"status", status: "running"});
         lines.forEach((line) => {
           countLine++;
           currentProgress=calcProgress(keySpace,countLine,hashEntries);
+
+
+          if(tickCount++>=50)
+          {
+            tmpKeyspace=hashEntries.length*(wordListCount-countLine)*rulesCount;
+            
+            postMessage({ worker:"crack",id:taskId,type:"tmpkeyspace", tmpkeyspace: tmpKeyspace});
+            tickCount=0;
+          }
+
           if(currentProgress!==previousStatus)
           {
-            postMessage({ id:taskId,type:"progress", progress: currentProgress});
+            postMessage({ worker:"crack",id:taskId,type:"progress", progress: currentProgress});
             previousStatus=currentProgress;
           }
         if(rulesContent!==false)
@@ -140,8 +161,8 @@ postMessage({ id:taskId,type:"status", status: "running"});
 
 
 
-  postMessage({ id:taskId,type:"progress", progress: 100});
-  postMessage({ id:taskId,type:"status", status: "done"});
+  postMessage({worker:"crack", id:taskId,type:"progress", progress: 100});
+  postMessage({worker:"crack", id:taskId,type:"status", status: "done"});
 }
 
 
@@ -227,7 +248,8 @@ function calcProgress(keyspace,count,hashes)
     for (let i = 0; i < hashEntries.length; i++) {
       const hash = hashEntries[i];
       if (hashcat.verifyHash(line, hash, selectedHashType) === true) {
-        postMessage({  
+        postMessage({ 
+          worker:"crack", 
           id:taskId,        
           type: "update",
           hash: hash,

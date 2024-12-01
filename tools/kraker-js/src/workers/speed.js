@@ -27,9 +27,9 @@ self.onmessage = (event) => {
               hashcat.verifyHash(password, hash, type);
               count++;
             }
-            postMessage({ hashtype: type, speed:Math.floor( count / (duration / 1000))  });
+            postMessage({ worker:"speed",hashtype: type, speed:Math.floor( count / (duration / 1000))  });
           }
-          postMessage({ status: "done"});
+          postMessage({ worker:"speed",status: "done"});
           
     }
   };

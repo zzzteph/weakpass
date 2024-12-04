@@ -14,6 +14,11 @@ const paginatedTasks = computed(() => {
   return sortedTasks.value.slice(startIndex, endIndex);
 });
 
+function saveTasksToLocalStorage() {
+  localStorage.setItem("tasks", JSON.stringify(tasks.value));
+
+}
+
 
 const totalPages = computed(() => Math.ceil(tasks.value.length / itemsPerPage.value));
 function timeConverter(seconds) {
@@ -95,6 +100,7 @@ const availableHashTypes = ref([]);
 const selectedHashType = ref('');
 
 
+let intervalId;
 
 const taskName=ref('');
 const isVerified=ref(false);
@@ -131,6 +137,26 @@ const speedMeasureResults = ref([]);
 
 
 
+const deleteTask = (taskID) => {
+   const confirmed = confirm(`Do you want to delete task ${taskID}?`);
+   if (!confirmed) return;
+
+
+  const index = tasks.value.findIndex(task => task.id === taskID);
+  if (index !== -1) {
+
+   if (getTaskByID(taskID).worker!=null && getTaskByID(taskID).worker instanceof Worker) {
+        getTaskByID(taskID).worker.terminate();
+         getTaskByID(taskID).worker = null; 
+
+   }
+
+
+    tasks.value.splice(index, 1); 
+    localStorage.setItem('tasks', JSON.stringify(tasks.value));
+  }
+  
+};
 
 
 
@@ -155,6 +181,14 @@ const runCrackWorker = () => {
             if(event.data.status=="done" )
             {
                getTaskByID(event.data.id).timeleft=false;
+               if (getTaskByID(event.data.id).worker!=null && getTaskByID(event.data.id).worker instanceof Worker) {
+                  getTaskByID(event.data.id).worker.terminate();
+                  getTaskByID(event.data.id).worker = null; 
+
+               }
+
+
+
             }
             getTaskByID(event.data.id).status=event.data.status;
             
@@ -163,6 +197,11 @@ const runCrackWorker = () => {
          if(event.data.type=="error")
          {
             getTaskByID(event.data.id).error=event.data.message;
+            if (getTaskByID(event.data.id).worker!=null && getTaskByID(event.data.id).worker instanceof Worker) {
+                  getTaskByID(event.data.id).worker.terminate();
+                  getTaskByID(event.data.id).worker = null; 
+
+               }
          }
 
          if(event.data.type=="parsedHashes")
@@ -195,12 +234,11 @@ const runCrackWorker = () => {
          {
            
 
-            getTaskByID(event.data.id).cleartext.push((String)(event.data.hash)+":"+(String)(event.data.hash));
-        
-            
+            getTaskByID(event.data.id).cleartext.push((String)(event.data.hash)+":"+(String)(event.data.password));
+
 
          }
-         localStorage.setItem('tasks', JSON.stringify(tasks.value));
+        
       }
       };
 
@@ -236,14 +274,17 @@ const runCrackWorker = () => {
     taskId.value++;
     isVerified.value=false;
     isError.value=false;
-    selectedHashType.value = '';
-    hashFileName.value='';
+    /* selectedHashType.value = '';
+   hashFileName.value='';
     hashFile.value=null;
     rulesName.value='';
     wordlistName.value='';
     wordlistFile.value=null;
     rulesFile.value=null;
-    selectedHashType.value=null;
+    selectedHashType.value=null;*/
+
+
+
     generateRandomName();
   } else {
     alert('Please fill in all fields!');
@@ -269,6 +310,9 @@ const verify = () => {
 
 
 if (selectedHashType.value && hashFile.value && wordlistFile.value) {
+
+   errorMessage.value='';
+   isError.value=false;
 
     verifyWorker.value = new Worker(new URL('./workers/test.js', import.meta.url), { type: 'module' });
 
@@ -397,6 +441,10 @@ onMounted(() => {
    generateRandomName();
    availableHashTypes.value = hashcat.availableHashTypes;
   benchmarkRun();
+
+  intervalId = setInterval(() => {    saveTasksToLocalStorage();  }, 10000); 
+
+
 });
 
 
@@ -404,23 +452,36 @@ onMounted(() => {
 onBeforeUnmount(() => {
    stopBenchMarkWorker();
    stopVerify();
+   clearInterval(intervalId);
 });
 
 
 
 function handleHashFileSelect(event) {
+
+   const selectedFile = event.target.files[0];
+
+   if (selectedFile !== hashFile.value) {
    hashFile.value = event.target.files[0];
    hashFileName.value = hashFile.value ? hashFile.value.name : '';
    isVerified.value=false;
    isError.value=false;
+   }
 
 }
 
 function handleWordlistSelect(event) {
+
+   const selectedFile = event.target.files[0];
+
+if (selectedFile !== wordlistFile.value) {
    wordlistFile.value = event.target.files[0];
    wordlistName.value = wordlistFile.value ? wordlistFile.value.name : '';
    isVerified.value=false;
    isError.value=false;
+}
+
+
 }
 
 
@@ -507,7 +568,6 @@ function loadTasksFromLocalStorage() {
 
 <div class="box">
 
-
    <div class="field">
 
 
@@ -584,12 +644,11 @@ function loadTasksFromLocalStorage() {
                <button class="button is-link" @click="verify">Verify</button>
             </div>
             <div v-if="isVerifyWorkerRunning==true" class="control">
-               <button class="button is-link" @click="stopVerify">
+               <button class="button is-danger" @click="stopVerify">
 
                   <span class="icon">
-                           <i class="fa-solid fa-spinner fa-spin has-text-black"></i>
+                           <i class="fa-solid fa-pause"></i>
                      </span>
-
 
 
                </button>
@@ -604,6 +663,22 @@ function loadTasksFromLocalStorage() {
 
 
          </div>
+
+
+         <div class="notification is-info" v-if="isVerifyWorkerRunning==true">
+           
+            <span class="icon-text">
+
+  <span> Task verification in process, please wait</span>
+  <span class="icon">
+                           <i class="fa-solid fa-spinner fa-spin"></i>
+                     </span>
+</span>
+
+
+
+            </div>
+
 
          <div class="notification is-danger" v-if="isError">
             {{ errorMessage }}
@@ -646,12 +721,21 @@ function loadTasksFromLocalStorage() {
 
                <div class="card">
                <header class="card-header  ">
-                  <p class="card-header-title "># {{ task.id }} - {{ task.name }}</p>
-                  <button    class="card-header-icon"   :class="{      'has-background-info': task.status === 'running',      'has-background-success': task.status === 'done',      'has-background-danger': task.status === 'error'   }"  >
+                  <p class="card-header-title ">
+                     
+                     <span class="icon-text">
+                     # {{ task.id }} - {{ task.name }}                 
+                      <span class="icon">
+                           <i class="fa-solid fa-spinner fa-spin has-text-info" v-if="task.status=='running'"></i>
+                           <i class="fa-solid fa-circle-check has-text-success"  v-if="task.status=='done'"></i>
+                           <i class="fa-solid fa-bug has-text-danger" v-if="task.status=='error'"></i>
+                     </span>
+                  </span>
+                  </p>                     
+
+                  <button    class="card-header-icon" @click="deleteTask(task.id)">
                      <span class="icon">
-                           <i class="fa-solid fa-spinner fa-spin has-text-black" v-if="task.status=='running'"></i>
-                           <i class="fa-solid fa-circle-check has-text-black"  v-if="task.status=='done'"></i>
-                           <i class="fa-solid fa-bug has-text-white" v-if="task.status=='error'"></i>
+                        <i class="fa-solid fa-trash"></i>
                      </span>
                   </button>
                </header>
@@ -674,12 +758,13 @@ function loadTasksFromLocalStorage() {
 
                               
                               </li>
+                              <li><time :datetime=task.date>{{ task.date.toLocaleDateString() }}</time></li>
                            </ul>
 
 
 
                            <p v-if="task.status=='error'">{{ task.error }}</p>
-                          <p><time :datetime=task.date>{{ task.date }}</time></p> 
+                          
                           <progress v-if="task.status=='running'" class="progress" :value=task.progress max="100">{{ task.progress }}</progress>
                      
                   </div>

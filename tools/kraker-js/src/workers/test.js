@@ -152,6 +152,7 @@ postMessage({ worker:"vetify",type:"status", status: "done"});
           remainder = lines.pop();
           lineCount += lines.length;
           offset += chunkSize;
+          postMessage({ worker:"vetify",type:"ping"});
           readChunk();
         };
   

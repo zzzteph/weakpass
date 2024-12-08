@@ -14,11 +14,26 @@ const paginatedTasks = computed(() => {
   return sortedTasks.value.slice(startIndex, endIndex);
 });
 
-function saveTasksToLocalStorage() {
+function saveDataToLocalStorage() {
   localStorage.setItem("tasks", JSON.stringify(tasks.value));
-
+  localStorage.setItem("speedMeasureResults", JSON.stringify(speedMeasureResults.value));
 }
+function monitorTasks() {
+  const now = new Date();
 
+  tasks.value.forEach((task) => {
+    const elapsedTime = now - task.lastSeen;
+
+    if (elapsedTime > 1 * 60 * 1000) { //5 mins will be enough
+      task.error = "Killed due to unresponse. Probably error or too long task";
+      task.status = "error";
+      if (task.worker != null && task.worker instanceof Worker) {
+        task.worker.terminate();
+        task.worker = null;
+      }
+    }
+  });
+}
 
 const totalPages = computed(() => Math.ceil(tasks.value.length / itemsPerPage.value));
 function timeConverter(seconds) {
@@ -101,7 +116,7 @@ const selectedHashType = ref('');
 
 
 let intervalId;
-
+let monitorId;
 const taskName=ref('');
 const isVerified=ref(false);
 const errorMessage=ref('');
@@ -111,7 +126,7 @@ const keyspace=ref(0);
 const hashFile = ref(null);
 const hashFileName = ref('');
 const speed=ref(0);
-
+const isAlive=ref(0);
 const wordlistFile = ref(null);
 const wordlistName = ref('');
 
@@ -177,6 +192,7 @@ const runCrackWorker = () => {
             if(event.data.status=="running" )
             {
                getTaskByID(event.data.id).progress=event.data.progress;
+               getTaskByID(event.data.id).lastSeen=new Date();
             }
             if(event.data.status=="done" )
             {
@@ -208,26 +224,30 @@ const runCrackWorker = () => {
          {
 
             getTaskByID(event.data.id).hashes=event.data.hashes;
+            getTaskByID(event.data.id).lastSeen=new Date();
 
          }
          if(event.data.type=="keyspace")
          {
 
             getTaskByID(event.data.id).keyspace=event.data.keyspace;
+            getTaskByID(event.data.id).lastSeen=new Date();
 
          }
          if(event.data.type=="progress")
          {
 
             getTaskByID(event.data.id).progress=event.data.progress;
+            getTaskByID(event.data.id).lastSeen=new Date();
 
          }
          if(event.data.type=="tmpkeyspace")
          {
-
+            getTaskByID(event.data.id).skipspace=event.data.skipspace;
             getTaskByID(event.data.id).tmpkeyspace=event.data.tmpkeyspace;
             if(getTaskByID(event.data.id).speed!==0)
             getTaskByID(event.data.id).timeleft=timeConverter( Math.floor(getTaskByID(event.data.id).tmpkeyspace/ getTaskByID(event.data.id).speed));
+            getTaskByID(event.data.id).lastSeen=new Date();
 
          }
          if(event.data.type=="update")
@@ -235,8 +255,13 @@ const runCrackWorker = () => {
            
 
             getTaskByID(event.data.id).cleartext.push((String)(event.data.hash)+":"+(String)(event.data.password));
+            getTaskByID(event.data.id).lastSeen=new Date();
 
-
+         }
+         if(event.data.type=="ping")
+         {
+         
+            getTaskByID(event.data.id).lastSeen=new Date();
          }
         
       }
@@ -257,6 +282,7 @@ const runCrackWorker = () => {
       selectedHashType: selectedHashType.value,
       progress: 0, 
       status:"todo",
+      skipspace:0,
       keyspace:keyspace.value,
       timeleft:false,
       tmpkeyspace:0,
@@ -265,7 +291,8 @@ const runCrackWorker = () => {
       hashes:[],
       cleartext:[],
       error:"",
-      keyspace:0
+      keyspace:0,
+      lastSeen:new Date()
     });
 
     const task = getTaskByID(taskId.value);
@@ -349,6 +376,11 @@ if (selectedHashType.value && hashFile.value && wordlistFile.value) {
 
          }
 
+         if(event.data.type=="ping")
+         {
+             isAlive.value=0;
+
+         }
 
          if(event.data.type=="time")
          {
@@ -438,12 +470,14 @@ if (benchmarkWorker!=null && benchmarkWorker.value!=null) {
 
 onMounted(() => {
    loadTasksFromLocalStorage();
+   loadBenchMarkFromLocalStorage();
    generateRandomName();
    availableHashTypes.value = hashcat.availableHashTypes;
-  benchmarkRun();
+   benchmarkRun();
 
-  intervalId = setInterval(() => {    saveTasksToLocalStorage();  }, 10000); 
-
+   intervalId = setInterval(() => {    saveDataToLocalStorage();  }, 10000); 
+   monitorId = setInterval(() => {    monitorTasks();  }, 10000); 
+  
 
 });
 
@@ -453,6 +487,7 @@ onBeforeUnmount(() => {
    stopBenchMarkWorker();
    stopVerify();
    clearInterval(intervalId);
+   clearInterval(monitorId);
 });
 
 
@@ -494,6 +529,12 @@ function handleRulesSelect(event) {
 
 
 
+function onHashTypeChange() {
+  isVerified.value = false;
+  isError.value = false;
+}
+
+
 function downloadCleartext(id)
 {
 
@@ -527,9 +568,7 @@ function downloadHashes(id)
 
    
 }
-   
-
-function loadTasksFromLocalStorage() {
+function loadBenchMarkFromLocalStorage() {
   const savedTasks = localStorage.getItem('tasks');
   if (savedTasks) {
     try {
@@ -539,7 +578,7 @@ function loadTasksFromLocalStorage() {
       tasks.value = parsedTasks.map(task => ({
         ...task,
         date: new Date(task.date), 
-        status: task.status === 'running' ? 'done' : task.status, 
+        status: task.status === 'running' ? 'terminated' : task.status, 
         timeleft: false, 
       }));
 
@@ -553,14 +592,39 @@ function loadTasksFromLocalStorage() {
   }
 }
 
+function loadTasksFromLocalStorage() {
+  const benchTable = localStorage.getItem('speedMeasureResults');
+  if (benchTable) {
+    try {
+      speedMeasureResults.value = JSON.parse(benchTable);
+    } catch (error) {
+      console.error("Failed to parse benchTable from localStorage", error);
+    }
+  }
+}
+
 </script>
 <template>
    <section class="section">
       <div class="container">
          <div class="columns is-multiline is-align-items-center">
             <div class="column is-12 ml-auto">
-               <h1 class="mb-5 is-size-1 is-size-3-mobile has-text-weight-bold">CRACK-JS</h1>
+               <h1 class="mb-5 is-size-1 is-size-3-mobile has-text-weight-bold">Kracker-JS</h1>
             </div>
+            <div class="column is-12 ml-auto">
+            <strong>Pure client-side</strong> javascript tool that allows to crack hashes and get cleartext passwords <strong>right</strong> <strong>from</strong> <strong>your</strong> <strong>browser</strong> just in 3-clicks. 
+            <ol   type="1">
+               <li>Select the hashlist file</li>
+               <li>Choose the wordlist, or download one from <a href="https://weakpass.com" target="_blank">https://weakpass.com</a> </li>
+               <li>Crack it</li>
+
+
+            </ol>
+            
+            </div>
+
+
+
 
             <div class="column is-12 ml-auto">
 
@@ -631,7 +695,7 @@ function loadTasksFromLocalStorage() {
          <div class="field is-grouped"  v-if="wordlistName">
          <div class="control is-expanded">
             <div class="select is-fullwidth">
-            <select v-model="selectedHashType" class="is-focused" :disabled="isVerifyWorkerRunning">
+            <select v-model="selectedHashType" class="is-focused" :disabled="isVerifyWorkerRunning"  @change="onHashTypeChange">
                <option disabled value="">(*)Select hash type</option>
                <option v-for="(type, index) in availableHashTypes" :key="index" :value="type">
                   {{ type }}
@@ -729,6 +793,7 @@ function loadTasksFromLocalStorage() {
                            <i class="fa-solid fa-spinner fa-spin has-text-info" v-if="task.status=='running'"></i>
                            <i class="fa-solid fa-circle-check has-text-success"  v-if="task.status=='done'"></i>
                            <i class="fa-solid fa-bug has-text-danger" v-if="task.status=='error'"></i>
+                           <i class="fa-solid fa-ban has-text-info"  v-if="task.status=='terminated'"></i>
                      </span>
                   </span>
                   </p>                     
@@ -769,9 +834,9 @@ function loadTasksFromLocalStorage() {
                      
                   </div>
                </div>
-               <footer class="card-footer" v-if="task.hashes.length>0" @click="downloadHashes(task.id)">
+               <footer class="card-footer" v-if="task.hashes.length>0" >
 
-                  <a class="card-footer-item" aria-label="reply">
+                  <a class="card-footer-item" aria-label="reply" @click="downloadHashes(task.id)">
                               <span class="icon-text">
                                     <span class="icon">
                                        <i class="fa-solid fa-download"></i>
@@ -801,7 +866,33 @@ function loadTasksFromLocalStorage() {
 
 
             <div class="column is-12 ml-auto">
-               <h2 class="title">Benchmark</h2>
+               <h2 class="title">Benchmark 
+                  <button v-if="!isBenchmarkWorkerRunning" class="button is-primary is-small" @click="benchmarkRun">
+                     
+                     <span class="icon">
+                        <i class="fa-solid fa-play"></i>
+
+                     </span>
+
+
+                  </button>
+                  <button v-else class="button is-danger is-small" @click="stopBenchMarkWorker">
+                     
+                     <span class="icon">
+                        <i class="fa-solid fa-stop"></i>
+
+                     </span>
+
+
+                  </button>
+               </h2>
+               
+
+
+
+
+
+
                <table class="table is-fullwidth mt-4">
                            <thead>
                               <tr>
@@ -816,10 +907,6 @@ function loadTasksFromLocalStorage() {
                               </tr>
                            </tbody>
                      </table>
-                     <button v-if="!isBenchmarkWorkerRunning" class="button is-primary" @click="benchmarkRun">Launch Benchmark</button>
-
-                     <button v-else class="button is-danger" @click="stopBenchMarkWorker">Stop Benchmark</button>
-
 
 
 

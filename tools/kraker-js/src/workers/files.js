@@ -67,7 +67,7 @@ postMessage({ worker:"crack",id:taskId,type:"parsedHashes", hashes: hashEntries 
   
 
 //calculate possible ammount of time
-let wordListCount = await getFileLinesCount(wordlistFile);
+let wordListCount = await getFileLinesCount(wordlistFile,taskId);
 
 if(wordListCount==false || wordListCount==0)
   {
@@ -76,7 +76,7 @@ if(wordListCount==false || wordListCount==0)
       self.close();
       return;
   }
-let rulesCount = await getFileLinesCount(rulesFile);
+let rulesCount = await getFileLinesCount(rulesFile,taskId);
 
 if(rulesCount==false || rulesCount==0)rulesCount=1;
 
@@ -121,13 +121,14 @@ postMessage({ worker:"crack",id:taskId,type:"status", status: "running"});
           if(tickCount++>=50)
           {
             tmpKeyspace=hashEntries.length*(wordListCount-countLine)*rulesCount;
-            
-            postMessage({ worker:"crack",id:taskId,type:"tmpkeyspace", tmpkeyspace: tmpKeyspace});
+
+            postMessage({ worker:"crack",id:taskId,type:"tmpkeyspace", tmpkeyspace: tmpKeyspace,skipspace:countLine});//TODO for future, allow to resume and skip done progress
             tickCount=0;
           }
 
           if(currentProgress!==previousStatus)
           {
+
             postMessage({ worker:"crack",id:taskId,type:"progress", progress: currentProgress});
             previousStatus=currentProgress;
           }
@@ -199,7 +200,7 @@ function calcProgress(keyspace,count,hashes)
   }
 
 
-  function getFileLinesCount(file) {
+  function getFileLinesCount(file,taskId) {
     return new Promise((resolve) => {
       if (!(file instanceof File)) {
         resolve(false); 
@@ -228,6 +229,7 @@ function calcProgress(keyspace,count,hashes)
           remainder = lines.pop();
           lineCount += lines.length;
           offset += chunkSize;
+          postMessage({ worker:"crack",id:taskId,type:"ping"});//send ping to server that it's alive
           readChunk();
         };
   
@@ -245,6 +247,11 @@ function calcProgress(keyspace,count,hashes)
   }
 
   function processHashes(hashEntries, line, selectedHashType, taskId) {
+
+
+
+
+
     for (let i = 0; i < hashEntries.length; i++) {
       const hash = hashEntries[i];
       if (hashcat.verifyHash(line, hash, selectedHashType) === true) {
@@ -260,3 +267,6 @@ function calcProgress(keyspace,count,hashes)
       }
     }
   }
+
+
+  

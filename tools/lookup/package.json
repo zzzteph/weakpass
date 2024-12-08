@@ -6,7 +6,8 @@
     "serve": "vue-cli-service serve",
     "vue-build": "vue-cli-service build",
     "build": "vite build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "build:extension": "vite build --config vite.config.extension.js"
   },
   "dependencies": {
     "@vitejs/plugin-vue": "^5.0.5",

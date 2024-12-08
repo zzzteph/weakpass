@@ -12,6 +12,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.7.1",
+    "@fortawesome/vue-fontawesome": "^3.0.8",
     "bulma": "^1.0.2",
     "crack-js": "^1.0.5",
     "hashcat-rules-js": "^1.0.8",

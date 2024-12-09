@@ -158,9 +158,9 @@ onMounted(() => {
 <div class="content">
 <p>Here you can generate a wordlist based on specific input data. For example, by entering an <strong>Acme.corp</strong> you will receive a list of possible passwords like <strong>Acme.corp2018!</strong>, <strong>Acme.corp123</strong>, and so on. All data is processed on the client with JavaScript.</p>
 
-<p>You can use <a href="https://hashcat.net/wiki/doku.php?id=rule_based_attack">hashcat rules</a> to generate a wordlist. By default, the generator will use its own rules, which you can find here or click on <strong>"Show rules"</strong>.</p>
+<p class="is-hidden-mobile">You can use <a href="https://hashcat.net/wiki/doku.php?id=rule_based_attack">hashcat rules</a> to generate a wordlist. By default, the generator will use its own rules, which you can find here or click on <strong>"Show rules"</strong>.</p>
 
-<p>Follow the project on <a href="https://github.com/zzzteph/weakpass">Github</a> or <a href="https://zzzteph.github.io/weakpass/">pages</a></p>
+<p class="is-hidden-mobile">Follow the project on <a href="https://github.com/zzzteph/weakpass">Github</a> or <a href="https://zzzteph.github.io/weakpass/">pages</a></p>
 
 </div>
 
@@ -275,13 +275,13 @@ onMounted(() => {
     <button class="button is-link is-small" @click="setRules('hobo')">hob064</button>
   </div>
 
-  <div class="control is-hidden-desktop" v-if="!isMobile">
-    <button class="button is-link is-small is-hidden-desktop" @click="setRules('top500')">top 500</button>
+  <div class="control is-hidden-mobile" >
+    <button class="button is-link is-small is-hidden-mobile" @click="setRules('top500')">top 500</button>
   </div>
 
 
-  <div class="control is-hidden-desktop"  v-if="!isMobile">
-    <button class="button is-link is-small is-hidden-desktop" @click="setRules('best64')">best64</button>
+  <div class="control is-hidden-mobile" >
+    <button class="button is-link is-small is-hidden-mobile" @click="setRules('best64')">best64</button>
   </div>
 </div>
 

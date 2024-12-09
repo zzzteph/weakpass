@@ -21,10 +21,11 @@ function saveDataToLocalStorage() {
 function monitorTasks() {
   const now = new Date();
 
-  tasks.value.forEach((task) => {
-    const elapsedTime = now - task.lastSeen;
+  tasks.value .filter(task => task.status !== 'done' && task.status !== 'error').forEach((task) => {
+   const lastSeen = task.lastSeen instanceof Date ? task.lastSeen : new Date(task.lastSeen);
+    const elapsedTime = now - lastSeen;
+    if (elapsedTime > 5 * 60 * 1000) { //5 mins will be enough
 
-    if (elapsedTime > 1 * 60 * 1000) { //5 mins will be enough
       task.error = "Killed due to unresponse. Probably error or too long task";
       task.status = "error";
       if (task.worker != null && task.worker instanceof Worker) {
@@ -612,14 +613,10 @@ function loadTasksFromLocalStorage() {
                <h1 class="mb-5 is-size-1 is-size-3-mobile has-text-weight-bold">Kracker-JS</h1>
             </div>
             <div class="column is-12 ml-auto">
-            <strong>Pure client-side</strong> javascript tool that allows to crack hashes and get cleartext passwords <strong>right</strong> <strong>from</strong> <strong>your</strong> <strong>browser</strong> just in 3-clicks. 
-            <ol   type="1">
-               <li>Select the hashlist file</li>
-               <li>Choose the wordlist, or download one from <a href="https://weakpass.com" target="_blank">https://weakpass.com</a> </li>
-               <li>Crack it</li>
+            <p><strong>Pure client-side</strong> javascript tool that allows to crack hashes and get cleartext passwords <strong>right</strong> <strong>from</strong> <strong>your</strong> <strong>browser</strong> just in 3-clicks. </p>
+            <p>Download more wordlists at <a href="https://weakpass.com" target="_blank">https://weakpass.com</a>. <strong>How-to: </strong>select a hashfile, choose the wordlist, crack it!</p>
 
 
-            </ol>
             
             </div>
 

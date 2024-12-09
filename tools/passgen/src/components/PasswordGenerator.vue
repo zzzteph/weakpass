@@ -1,5 +1,5 @@
 <script setup>
-import { ref,watch  } from 'vue';
+import { ref,watch,onMounted   } from 'vue';
 import { applyRule } from 'hashcat-rules-js';
 
 
@@ -17,7 +17,11 @@ const filterNumber = ref(false);
 const showRules = ref(true);
 const results = ref('');
 
+const isMobile = () => {
+  const userAgent = navigator.userAgent || navigator.vendor || window.opera;
 
+  return /android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+}
 const generate = () => {
   let data = inputData.value.split(/[\s,]+/).filter((v, i, a) => a.indexOf(v) === i && (v === "0" || v));
 
@@ -139,22 +143,24 @@ function setRules(type) {
   }
 }
 
-
+onMounted(() => {
+  showRules.value = !isMobile();
+});
 
 
 </script>
 
 
 <template>
-  <section class="section is-family-monospace">
+  <section class="section">
 <div class="container">
 <h1 class="title">Passwords generator</h1>
 <div class="content">
 <p>Here you can generate a wordlist based on specific input data. For example, by entering an <strong>Acme.corp</strong> you will receive a list of possible passwords like <strong>Acme.corp2018!</strong>, <strong>Acme.corp123</strong>, and so on. All data is processed on the client with JavaScript.</p>
 
-<p>You can use <a href="https://hashcat.net/wiki/doku.php?id=rule_based_attack">hashcat rules</a> to generate a wordlist. By default, the generator will use its own rules, which you can find here or click on <strong>"Show rules"</strong>.</p>
+<p class="is-hidden-mobile">You can use <a href="https://hashcat.net/wiki/doku.php?id=rule_based_attack">hashcat rules</a> to generate a wordlist. By default, the generator will use its own rules, which you can find here or click on <strong>"Show rules"</strong>.</p>
 
-<p>Follow the project on <a href="https://github.com/zzzteph/weakpass">Github</a> or <a href="https://zzzteph.github.io/weakpass/">pages</a></p>
+<p class="is-hidden-mobile">Follow the project on <a href="https://github.com/zzzteph/weakpass">Github</a> or <a href="https://zzzteph.github.io/weakpass/">pages</a></p>
 
 </div>
 
@@ -199,7 +205,7 @@ function setRules(type) {
   </div>
 </div>
 
-<div class="field is-hidden-desktop">
+<div class="field is-hidden-desktop is-grouped">
   <div class="control">
     <label class="checkbox">
       <input type="checkbox" v-model="showRules">
@@ -208,9 +214,7 @@ function setRules(type) {
   </div>
   
 
-</div>  
 
-<div class="field is-grouped is-hidden-desktop"> 
 
   <div class="control">
     <label class="checkbox">
@@ -218,6 +222,8 @@ function setRules(type) {
       Length > 8
     </label>
   </div>
+</div>
+<div class="field is-hidden-desktop is-grouped">
   <div class="control">
     <label class="checkbox">
       <input type="checkbox" v-model="filterSpecial">
@@ -244,7 +250,7 @@ function setRules(type) {
 
 
 <div class="columns">
-<div class="column is-6">
+<div class="column" :class="{'is-6': showRules, 'is-12': !showRules}">
   <label class="label" id="count">Result</label>
   <div class="control">
     <textarea class="textarea is-primary" v-model="results" id="result" rows="25"></textarea> 
@@ -269,13 +275,13 @@ function setRules(type) {
     <button class="button is-link is-small" @click="setRules('hobo')">hob064</button>
   </div>
 
-  <div class="control">
-    <button class="button is-link is-small" @click="setRules('top500')">top 500</button>
+  <div class="control is-hidden-mobile" >
+    <button class="button is-link is-small is-hidden-mobile" @click="setRules('top500')">top 500</button>
   </div>
 
 
-  <div class="control">
-    <button class="button is-link is-small" @click="setRules('best64')">best64</button>
+  <div class="control is-hidden-mobile" >
+    <button class="button is-link is-small is-hidden-mobile" @click="setRules('best64')">best64</button>
   </div>
 </div>
 

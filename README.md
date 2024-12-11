@@ -82,9 +82,7 @@ Beyond that, it simulates rule-based attacks by applying "reverse" hashcat rules
 
 # Kraker-JS
 
-
-Discover if your password is in the weakpass_4 wordlist or vulnerable to advanced rule-based attacks.
-
+Crack the hashes right from your browser!
 -  [https://zzzteph.github.io/weakpass/tools/kraker-js/dist/](https://zzzteph.github.io/weakpass/tools/kraker-js/dist/)
 - [https://weakpass.com/tools/kraker-js](https://weakpass.com/tools/kraker-js)
 

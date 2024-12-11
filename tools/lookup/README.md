@@ -2,7 +2,7 @@
 
 Perform secure password hash lookups using the Range API without submitting sensitive data to the server.
 
-**Tool Link:** [https://weakpass.com/tools/lookup](https://weakpass.com/tools/lookup)
+**Try it online:** [Lookup](https://zzzteph.github.io/weakpass/tools/lookup/dist/)
 
 Reveal passwords for MD5, NTLM, SHA1, or SHA256 hashes using the precomputed `weakpass4.merged.txt` file without sending your hash to the backend. The primary advantage is that all hash checks are done client-side, ensuring that your data remains secure and private.
 

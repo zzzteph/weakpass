@@ -13,7 +13,7 @@ Here, you can find the list of tools from [weakpass.com](https://weakpass.com/) 
     - [Kraker-js](https://zzzteph.github.io/weakpass/tools/kraker-js/dist/)
     - [Lookup](https://zzzteph.github.io/weakpass/tools/lookup/dist/)
     - [Passcheck](https://zzzteph.github.io/weakpass/tools/passcheck/dist/)
-    - [Generator](https://zzzteph.github.io/weakpass/tools/generator/dist/)
+    - [Passgen](https://zzzteph.github.io/weakpass/tools/passgen/dist/)
 
 - **libs**
   - Links to the libraries used in this project.

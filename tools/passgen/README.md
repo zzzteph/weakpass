@@ -1,15 +1,11 @@
-# passgen - Weakpass rule-based online generator
+# Passgen - Weakpass rule-based online generator
 
+Generate a wordlist based on user-provided keywords for targeted password testing.
 
-The tool generates a wordlist based on a set of words entered by the user.
-
-Link: https://zzzteph.github.io/weakpass/
-
-Secondary: https://weakpass.com/generate
-
+**Try it online:** [Passgen](https://zzzteph.github.io/weakpass/tools/passgen/dist/)
 
 <p align="center">
-  <img src="https://github.com/zzzteph/weakpass/blob/main/passgen/sample.png?raw=true"  height="350">
+  <img src="https://github.com/zzzteph/weakpass/blob/main/tools/passgen/sample.png?raw=true"  height="250">
 </p>
 
 

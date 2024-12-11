@@ -9,7 +9,7 @@ Here, you can find the list of tools from [weakpass.com](https://weakpass.com/) 
 ### 📂 Folder Structure
 
 - **tools**
-  - A collection of password and hash cracking tools. Check them out:
+  - A collection of password and hash cracking tools. **Check them out:**
     - [Kraker-js](https://zzzteph.github.io/weakpass/tools/kraker-js/dist/)
     - [Lookup](https://zzzteph.github.io/weakpass/tools/lookup/dist/)
     - [Passcheck](https://zzzteph.github.io/weakpass/tools/passcheck/dist/)

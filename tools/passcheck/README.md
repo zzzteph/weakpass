@@ -5,6 +5,11 @@ Discover if your password is in the weakpass_4 wordlist or vulnerable to advance
 
 Online: [Passcheck](https://zzzteph.github.io/weakpass/tools/passcheck/dist/)
 
+<p align="center">
+  <img src="https://github.com/zzzteph/weakpass/blob/main/tools/passcheck/passcheck.PNG?raw=true"  height="250">
+</p>
+
+
 This tool checks if your password exists in the **weakpass_4.merged** wordlist using a range lookup API. 
 
 **But what if someone decided to use rule-based attack? Is your password safe for rule-based attacks?**

@@ -3,7 +3,7 @@
 
 Discover if your password is in the weakpass_4 wordlist or vulnerable to advanced rule-based attacks.
 
-**Tool Link:** [https://weakpass.com/tools/passcheck](https://weakpass.com/tools/passcheck)
+Online: [Passcheck](https://zzzteph.github.io/weakpass/tools/passcheck/dist/)
 
 This tool checks if your password exists in the **weakpass_4.merged** wordlist using a range lookup API. 
 

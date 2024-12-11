@@ -1,23 +1,38 @@
-# Weakpass
+# Weakpass (JS)
 
-Here you can find the list of tools from weakpass.com for password and hash cracking in one place.
+<p align="center">
+  <img src="https://github.com/zzzteph/weakpass/blob/readme/cracker.png?raw=true"  height="250">
+</p>
+
+
+Here, you can find the list of tools from [weakpass.com](https://weakpass.com/) for password and hash cracking in one place.
 
 Curious about the folder structure?
 
-- **tools** - list of tools from weakpass.com for password and hash cracking in one place.
-- online.rule
-- TBA
+- **tools** - list of tools from weakpass.com for password and hash cracking in one place. You can follow the links bellow to test them out right now!
+  - [Kraker-js](https://zzzteph.github.io/weakpass/tools/kraker-js/dist/)
+  - [Lookup](https://zzzteph.github.io/weakpass/tools/lookup/dist/)
+  - [Passcheck](https://zzzteph.github.io/weakpass/tools/passcheck/dist/)
+  - [Generator](https://zzzteph.github.io/weakpass/tools/passcheck/dist/)
+- **libs** - links to the libraries that are used in the project
+- **rules** - achieve of rules
+
+All of the tools and libraries you can find in separate folders, a quick overview of the tools if you want to try them right now
+
+
+
 
 
 # Passgen - passwords generator
-- Link: https://zzzteph.github.io/weakpass/tools/passgen/dist/
-- Secondary: https://weakpass.com/tools/passgen
-
-<p align="center">
-  <img src="https://github.com/zzzteph/weakpass/blob/main/tools/passgen/sample.png?raw=true"  height="350">
-</p>
 
 The tool generates a wordlist based on a set of words entered by the user.
+Online: https://zzzteph.github.io/weakpass/tools/passgen/dist/
+
+<p align="center">
+  <img src="https://github.com/zzzteph/weakpass/blob/main/tools/passgen/sample.png?raw=true"  height="250">
+</p>
+
+
 For example, during penetration testing, you need to gain access to some service, device, account, or Wi-Fi network that is password protected. For example, let it be the _Wi-Fi_ network of **EvilCorp**. Sometimes, a password is a combination of _device/network/organization_ name with some date, special character, etc. Therefore, it is simpler and easier to test some combinations before launching more complex and time-consuming checks. For example, cracking a _Wi-Fi_ password with a wordlist can take several hours and can fail, even if you choose a [great wordlist](https://weakpass.com/wordlist/1950) because there was no such password in it like **Evilcorp2019**. 
 
 Therefore, using the generated wordlist, it is possible to organize a targeted and effective online password check.
@@ -27,11 +42,11 @@ Therefore, using the generated wordlist, it is possible to organize a targeted a
 
 Perform secure password hash lookups using the Range API without submitting sensitive data to the server.
 
-- https://zzzteph.github.io/weakpass/tools/lookup/dist/
-- [https://weakpass.com/tools/lookup](https://weakpass.com/tools/lookup)
+Online: [Lookup](https://zzzteph.github.io/weakpass/tools/lookup/dist/)
+
 
 <p align="center">
-  <img src="https://github.com/zzzteph/weakpass/blob/main/tools/lookup/lookup.PNG?raw=true"  height="350">
+  <img src="https://github.com/zzzteph/weakpass/blob/main/tools/lookup/lookup.PNG?raw=true"  height="250">
 </p>
 
 
@@ -46,10 +61,33 @@ A server example that "works" with this database structure can be found in the r
 
 # Passcheck - Has your password been compromised?
 
+Discover if your password is in the weakpass_4 wordlist or vulnerable to advanced rule-based attacks.
+
+Online: [Passcheck](https://zzzteph.github.io/weakpass/tools/passcheck/dist/)
+
+<p align="center">
+  <img src="https://github.com/zzzteph/weakpass/blob/main/tools/passcheck/passcheck.PNG?raw=true"  height="250">
+</p>
+
+
+This tool checks if your password exists in the **weakpass_4.merged** wordlist using a range lookup API. 
+
+**But what if someone decided to use a rule-based attack? Is your password safe for rule-based attacks?**
+Beyond that, it simulates rule-based attacks by applying "reverse" hashcat rules to identify potential candidates that could be used with the rules to crack your password.
+
+## Key Features
+- **Wordlist check** - Verifies if your password is found in the weakpass_4.merged wordlist.
+- **Rule-Based attack simulation** - Generates candidates and tests if your password is vulnerable to rule-based cracking techniques.
+
+
+# Kraker-JS
+
 
 Discover if your password is in the weakpass_4 wordlist or vulnerable to advanced rule-based attacks.
 
-**Tool Link:** [https://weakpass.com/tools/passcheck](https://weakpass.com/tools/passcheck)
+-  [https://zzzteph.github.io/weakpass/tools/kraker-js/dist/](https://zzzteph.github.io/weakpass/tools/kraker-js/dist/)
+- [https://weakpass.com/tools/kraker-js](https://weakpass.com/tools/kraker-js)
+
 
 <p align="center">
   <img src="https://github.com/zzzteph/weakpass/blob/main/tools/passcheck/passcheck.PNG?raw=true"  height="350">
@@ -58,9 +96,11 @@ Discover if your password is in the weakpass_4 wordlist or vulnerable to advance
 
 This tool checks if your password exists in the **weakpass_4.merged** wordlist using a range lookup API. 
 
-**But what if someone decided to use rule-based attack? Is your password safe for rule-based attacks?**
+**But what if someone decided to use a rule-based attack? Is your password safe for rule-based attacks?**
 Beyond that, it simulates rule-based attacks by applying "reverse" hashcat rules to identify potential candidates that could be used with the rules to crack your password.
 
 ## Key Features
 - **Wordlist check** - Verifies if your password is found in the weakpass_4.merged wordlist.
 - **Rule-Based attack simulation** - Generates candidates and tests if your password is vulnerable to rule-based cracking techniques.
+
+

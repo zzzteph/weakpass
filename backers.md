@@ -1,4 +1,4 @@
-## Patreon 
+## Thanks for your support 
 
 * [nyxgeek](https://github.com/nyxgeek)
 * [Denis @ttffdd Rybin](https://www.linkedin.com/in/ttffdd/)

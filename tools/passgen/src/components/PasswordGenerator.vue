@@ -125,6 +125,18 @@ const filterResultNumber = () => {
 };
 
 
+function downloadResults() {
+  const blob = new Blob([results.value], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'generated_worlist.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 
 function setRules(type) {
@@ -242,10 +254,15 @@ onMounted(() => {
 
 
 
-<div class="field">
+<div class="field is-grouped">
   <div class="control">
     <button class="button is-link" @click="generate">Generate</button>
   </div>
+
+  <div class="control">
+    <button class="button is-success" v-if="results.trim().length > 0"  @click="downloadResults">Download</button>
+  </div>
+
 </div>
 
 

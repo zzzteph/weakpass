@@ -1,12 +1,15 @@
-# Weakpass (JS)
+# Weakpass
 
 <p align="center">
   <img src="https://github.com/zzzteph/weakpass/blob/readme/cracker.png?raw=true"  height="250">
 </p>
 
-Here, you can find the list of tools from [weakpass.com](https://weakpass.com/) for password and hash cracking in one place.
+Here, you can find the list of tools and example of API server from [weakpass.com](https://weakpass.com/) for password and hash cracking in one place.
 
 ### 📂 Folder Structure
+
+- **server**
+  - Server demo-example for the Weakpass API. 
 
 - **tools**
   - A collection of password and hash cracking tools. **Check them out:**
@@ -54,7 +57,7 @@ Perform secure hash lookups without submitting sensitive data to a server using 
   <img src="https://github.com/zzzteph/weakpass/blob/main/tools/lookup/lookup.PNG?raw=true"  height="250">
 </p>
 
-Reveal passwords for MD5, NTLM, SHA1, or SHA256 hashes using the precomputed `weakpass4.merged.txt` file without sending your hash to the backend. The primary advantage is that all hash checks are done client-side, ensuring that your data remains secure and private.
+Reveal passwords for MD5, NTLM, SHA1, or SHA256 hashes using the precomputed wordlist without sending your hash to the backend. The primary advantage is that all hash checks are done client-side, ensuring that your data remains secure and private.
 
 Additionally, you can host and build the database for this tool locally and in-house. To do so, use one of the precomputed tables available [here](https://weakpass.com/pre-computed) and set up an API to serve hash ranges by value.
 
@@ -74,7 +77,7 @@ Online: [Passcheck](https://zzzteph.github.io/weakpass/tools/passcheck/dist/)
 </p>
 
 
-This tool checks if your password exists in the **weakpass_4.merged** wordlist using a range lookup API. 
+This tool checks if your password exists in the precomputed wordlist using a range lookup API. 
 
 **But what if someone decided to use a rule-based attack? Is your password safe for rule-based attacks?**
 Beyond that, it simulates rule-based attacks by applying "reverse" hashcat rules to identify potential candidates that could be used with the rules to crack your password.

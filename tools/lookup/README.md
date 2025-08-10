@@ -11,7 +11,7 @@ Perform secure password hash lookups using the Range API without submitting sens
 
 
 
-Reveal passwords for MD5, NTLM, SHA1, or SHA256 hashes using the precomputed `weakpass4.merged.txt` file without sending your hash to the backend. The primary advantage is that all hash checks are done client-side, ensuring that your data remains secure and private.
+Reveal passwords for MD5, NTLM, SHA1, or SHA256 hashes using the precomputed wordlist without sending your hash to the backend. The primary advantage is that all hash checks are done client-side, ensuring that your data remains secure and private.
 
 Additionally, you can host and build the database for this tool locally and in-house. To do so, use one of the precomputed tables available [here](https://weakpass.com/pre-computed) and set up an API to serve hash ranges by value.
 

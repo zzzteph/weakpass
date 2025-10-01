@@ -1,3 +1,0 @@
-app: public/index.php
-workers: 4
-bootstrap: bootstrap/app.php

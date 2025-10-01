@@ -8,8 +8,6 @@ Here, you can find the list of tools and example of API server from [weakpass.co
 
 ### 📂 Folder Structure
 
-- **server**
-  - Server demo-example for the Weakpass API. 
 
 - **tools**
   - A collection of password and hash cracking tools. **Check them out:**

@@ -16,7 +16,7 @@
     "@fortawesome/vue-fontawesome": "^3.0.8",
     "bulma": "^1.0.2",
     "crack-js": "^1.0.5",
-    "hashcat-rules-js": "^1.0.8",
+    "hashcat-rules-js": "^1.0.0",
     "mitt": "^3.0.1",
     "vite-plugin-singlefile": "^2.1.0",
     "vue": "^3.5.12"

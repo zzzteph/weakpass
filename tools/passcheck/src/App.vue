@@ -1,291 +1,40 @@
 <script setup>
-import { ref} from 'vue';
+import { ref,computed} from 'vue';
 import CryptoJS from 'crypto-js';
+import reverse from 'hashcat-reverse-rules-js';
+import hashcatEngine from 'hashcat-rules-js';
 const API_URL="https://weakpass.com/api/v1/range/";
-function endingsUpToThreeNumbersProcessing(input) {
-    const result = new Map();
-    const match = input.match(/(\d+)$/);
-    if (match) {
-        const numbers = match[1]; 
-        const numLength = numbers.length;
-        for (let i = 1; i <= numLength; i++) {
-            const remainingString = input.slice(0, -i);
-            const extractedNumbers = numbers.slice(-i).split('').map(n => `$${n}`).join(' ');
-            result.set(remainingString, extractedNumbers);
-        }
-    }
-
-    return result;
-}
-
-function endingsSpecAndNumberProcessing(input) {
-    const result = new Map();
-    const specialCharRegex = /[@#$%^&*()]$/;
-    const secondLastRegex = /(\d|[@#$%^&*()])$/;
-    if (specialCharRegex.test(input)) {
-        const lastChar = input.slice(-1);
-        const remainingAfterLastChar = input.slice(0, -1);
-        if (secondLastRegex.test(remainingAfterLastChar)) {
-            const secondLastChar = remainingAfterLastChar.slice(-1);
-            const remainingString = remainingAfterLastChar.slice(0, -1);
-            result.set(remainingString, `$${secondLastChar} $${lastChar}`);
-        }
-        result.set(remainingAfterLastChar, `$${lastChar}`);
-    }
-
-    return result;
-}
-
-function processYearEnding(input) {
-    const result = new Map();
-    const yearWithSpecialCharRegex = /(19[7-9][0-9]|20[0-2][0-6])([@#$%^&*()!])$/;
-    if (yearWithSpecialCharRegex.test(input)) {
-        const match = input.match(yearWithSpecialCharRegex);
-        const year = match[1]; // Extract the year
-        const specialChar = match[2];
-        const remainingString = input.slice(0, -year.length - 1); // Remove year and special character
-        const formattedYear = year.split('').map(char => `$${char}`).join('');
-        result.set(remainingString, `${formattedYear}$${specialChar}`);
-    } else {
-        const yearRegex = /(19[7-9][0-9]|20[0-2][0-6])$/;
-        if (yearRegex.test(input)) {
-            const year = input.match(yearRegex)[0];
-            const remainingString = input.slice(0, -year.length);
-            const formattedYear = year.split('').map(char => `$${char}`).join('');
-            result.set(remainingString, formattedYear);
-        }
-    }
-
-    return result;
-}
-
-function processSpecialCharEnding(input) {
-    const result = new Map();
-    const specialCharRegex = /([@#$%^&*()!]{1,4})$/;
-    if (specialCharRegex.test(input)) {
-        const match = input.match(specialCharRegex)[0];
-        const numSpecialChars = match.length;
-        for (let i = 1; i <= numSpecialChars; i++) {
-            const remainingString = input.slice(0, -i);
-            const formattedSpecialChars = match.slice(-i).split('').map(char => `$${char}`).join(' ');
-            result.set(remainingString, formattedSpecialChars);
-        }
-    }
-
-    return result;
-}
-function processPatternEnding(input) {
-    const result = new Map();
-
-    const patterns = [
-        "12345",
-        "1234",
-        "123",
-        "12345!",
-        "1234!",
-        "123!",
-        "!12345",
-        "!1234",
-        "!123",
-        "123!@#",
-        "1234!@#",
-    ];
-
-
-    for (const pattern of patterns) {
-        if (input.endsWith(pattern)) {
-            const remainingString = input.slice(0, -pattern.length);
-            const formattedPattern = pattern
-                .split('')
-                .map(char => `$${char}`)
-                .join('');
-            result.set(remainingString, formattedPattern);
-            break; 
-        }
-    }
-
-    return result;
-}
-
-function processCapitalisedFirstLetter(input) {
-    const result = new Map();
-    if(input.length==0)return result;
-    if (input[0] === input[0].toUpperCase() && input[0] !== input[0].toLowerCase()) {
-        const modifiedString = input[0].toLowerCase() + input.slice(1);
-        result.set(modifiedString, 'c'); 
-    }
-
-    return result;
-}
-
-function processPrefixPatterns(input) {
-    const result = new Map();
-    const yearRegex = /^(200[0-9]|201[0-9]|202[0-6])/;
-    const numberRegex = /^\d+/;
-    const specialPrefixes = ["!@#", "!@", "!"];
-
-    for (const prefix of specialPrefixes) {
-        if (input.startsWith(prefix)) {
-            const remainingString = input.slice(prefix.length); 
-            const reversedPrefix = prefix.split('').reverse().map(char => `^${char}`).join(''); 
-            result.set(remainingString, reversedPrefix);
-            return result; 
-        }
-    }
-
-    if (yearRegex.test(input)) {
-        const year = input.match(yearRegex)[0];
-        const remainingString = input.slice(year.length); 
-        const reversedYear = year.split('').reverse().map(char => `^${char}`).join(''); 
-        result.set(remainingString, reversedYear);
-        return result; 
-    }
-
-    if (numberRegex.test(input)) {
-        const number = input.match(numberRegex)[0];
-        const remainingString = input.slice(number.length); 
-        const reversedNumber = number.split('').reverse().map(char => `^${char}`).join(''); 
-        result.set(remainingString, reversedNumber);
-        return result; 
-    }
-
-    return result; 
-}
-
-function processDoubledWords(input) {
-    const result = new Map();
-    const doubledRegex = /^(.+)\1$/;
-    if (doubledRegex.test(input)) {
-        const word = input.match(doubledRegex)[1]; 
-        result.set(word, 'd'); 
-    }
-
-    return result;
-}
-
-function processReversedDoubles(input) {
-    const result = new Map();
-    if (input.length % 2 === 0) {
-        const halfLength = input.length / 2;
-        const firstHalf = input.slice(0, halfLength);
-        const secondHalf = input.slice(halfLength).split('').reverse().join(''); 
-        if (firstHalf === secondHalf) {
-            result.set(firstHalf, 'f'); 
-        }
-    }
-
-    return result;
-}
-
-function addResultsToMap(sourceMap, additionalMap) {
-    additionalMap.forEach((value, key) => {
-        if(key.length!=0) sourceMap.set(key, value.replace(/\s+/g, ''));
-    });
-    return sourceMap;
-}
-
-function addResultsToMapWithRule(sourceMap, additionalMap,rule) {
-    additionalMap.forEach((value, key) => {
-        if(key.length!=0)
-        sourceMap.set(key, (value+rule).replace(/\s+/g, ''));
-    });
-    return sourceMap;
-}
-
-function secondRoundCandidates(string)
-{
-    let candidates = new Map();
-    addResultsToMap(candidates, endingsUpToThreeNumbersProcessing(string));
-    addResultsToMap(candidates, endingsSpecAndNumberProcessing(string));
-    addResultsToMap(candidates, processYearEnding(string));
-    addResultsToMap(candidates, processSpecialCharEnding(string));
-    addResultsToMap(candidates, processPatternEnding(string));
-    addResultsToMap(candidates, processPrefixPatterns(string));
-    addResultsToMap(candidates, processCapitalisedFirstLetter(string));
-    addResultsToMap(candidates, processDoubledWords(string));
-    addResultsToMap(candidates, processReversedDoubles(string));
-    
-    return candidates;
-}
-
-
-function generateCandidates(string)
-{
-    let candidates = new Map();
-
-    addResultsToMap(candidates, endingsUpToThreeNumbersProcessing(string));
-    addResultsToMap(candidates, endingsSpecAndNumberProcessing(string));
-    addResultsToMap(candidates, processYearEnding(string));
-    addResultsToMap(candidates, processSpecialCharEnding(string));
-    addResultsToMap(candidates, processPatternEnding(string));
-    addResultsToMap(candidates, processPrefixPatterns(string));
-    addResultsToMap(candidates, processCapitalisedFirstLetter(string));
-    addResultsToMap(candidates, processDoubledWords(string));
-    addResultsToMap(candidates, processReversedDoubles(string));
-    let secondRound=new Map();
-    for (const [key, value] of candidates.entries()) {
-
-            addResultsToMapWithRule(secondRound,secondRoundCandidates(key),value);
-
-
-    }
-    addResultsToMap(candidates, secondRound);
-
-
-    return candidates;
-}
-
-
-
-
-
-
-
-
-
-
+const progress = ref(0)
+const rules="JCEKJCEgJDEgJDIgJDMKJCEgJDIgJDAgJDEgJDgKJCEgJDIgJDAgJDEgJDkKJCEgJDIgJDAgJDIgJDAKJCEgJDIgJDAgJDIgJDEKJCEgJDIgJDAgJDIgJDIKJCEgJDIgJDAgJDIgJDMKJCEgJDIgJDAgJDIgJDQKJCEgJEAKJCEgJEAgJCMKJCEgJEAgJCMgJCQKJCEgJEAgMSMKJCMKJCQKJDAKJDAgJDAKJDAgJDEKJDAgJDEgJCEgCiQwICQyCiQwICQyICQhCiQwICQzCiQwICQzICQhCiQwICQ0CiQwICQ0ICQhCiQwICQ1CiQwICQ1ICQhCiQwICQ2CiQwICQ2ICQhCiQwICQ3CiQwICQ3ICQhCiQwICQ4CiQwICQ4ICQhCiQwICQ5CiQwICQ5ICQhCiQxCiQxICQwCiQxICQwICQhCiQxICQwICQxCiQxICQxCiQxICQxICQhCiQxICQxICQ5CiQxICQyCiQxICQyICQhCiQxICQyICQzCiQxICQyICQzICQhCiQxICQyICQzICQ0CiQxICQyICQzICQ0ICQ1CiQxICQyICQzICQ0ICQ1ICQ2CiQxICQyICQzICQ0ICQ1ICQ2ICQ3ICQ4CiQxICQyICQzICQ0ICQ1ICQ2ICQ3ICQ4ICQ5ICQwCiQxICQzCiQxICQzICQhCiQxICQzICQwICQwCiQxICQzICQ3CiQxICQzICQ5CiQxICQ0CiQxICQ0ICQhCiQxICQ1CiQxICQ1ICQhCiQxICQ2CiQxICQ2ICQhCiQxICQ2ICQxICQ2CiQxICQ3CiQxICQ3ICQhCiQxICQ4CiQxICQ4ICQhCiQxICQ5CiQxICQ5ICQhCiQxICQ5ICQwICQ3CiQxICQ5ICQwICQ5CiQxICQ5ICQxICQxCiQxICQ5ICQxICQ5CiQxICQ5ICQyICQxCiQxICQ5ICQyICQ5CiQxICQ5ICQzICQ2CiQxICRAICEjCiQyCiQyICQwCiQyICQwICQhCiQyICQwICQxICQ4CiQyICQwICQxICQ4ICQhCiQyICQwICQxICQ4ICQhICRAICQjCiQyICQwICQxICQ5CiQyICQwICQxICQ5ICQhCiQyICQwICQxICQ5ICQhICRAICQjCiQyICQwICQyCiQyICQwICQyICQwCiQyICQwICQyICQwICQhCiQyICQwICQyICQwICQhICRAICQjCiQyICQwICQyICQxCiQyICQwICQyICQxICQhCiQyICQwICQyICQxICQhICRAICQjCiQyICQwICQyICQyCiQyICQwICQyICQyICQhCiQyICQwICQyICQyICQhICRAICQjCiQyICQwICQyICQzCiQyICQwICQyICQzICQhCiQyICQwICQyICQzICQhICRAICQjCiQyICQwICQyICQ0CiQyICQwICQyICQ0ICQhCiQyICQwICQyICQ0ICQhICRAICQjCiQyICQwICQyICQ1CiQyICQxCiQyICQxICQhCiQyICQyCiQyICQyICQhCiQyICQyICQzICQzCiQyICQzCiQyICQzICQhCiQyICQzICQwICQwCiQyICQzICQwICQxCiQyICQ0CiQyICQ0ICQhCiQyICQ1CiQyICQ1ICQhCiQyICQ2CiQyICQ2ICQhCiQyICQ3CiQyICQ3ICQhCiQyICQ4CiQyICQ4ICQhCiQyICQ5CiQyICQ5ICQhCiQzCiQzICQwCiQzICQwICQhCiQzICQxCiQzICQxICQhCiQzICQzCiQzICQzICQwCiQzICQ3ICQwCiQzICRACiQ0CiQ0ICQyICQzICQxCiQ0ICQ0CiQ0ICQ1CiQ0ICQ1ICQwCiQ0ICQ2ICQ1CiQ0ICQ3ICQwCiQ0ICQ4ICQwCiQ1CiQ1ICQzICQ0CiQ1ICQ0ICQzCiQ1ICQ0ICQ1CiQ1ICQ1CiQ1ICQ1ICQ2CiQ1ICQ2CiQ1ICQ3ICQ4CiQ1ICQ5ICQ5CiQ2CiQ2ICQ1ICQ2CiQ2ICQ2CiQ2ICQ2ICQwCiQ2ICQ2ICQ2CiQ2ICQ2ICQ3ICQ3CiQ2ICQ4ICQwCiQ2ICQ5CiQ2ICQ5ICQwCiQ3CiQ3ICQ3CiQ3ICQ3ICQ4CiQ3ICQ4CiQ3ICQ4ICQ3CiQ3ICQ5CiQ4CiQ4ICQqICQqCiQ4ICQxICQwICQwCiQ4ICQyICQwCiQ4ICQ0ICQwCiQ4ICQ1CiQ4ICQ1ICQwCiQ4ICQ2CiQ4ICQ3CiQ4ICQ4CiQ4ICQ4ICQ2CiQ4ICQ5CiQ4ICQ5ICQwICQwCiQ4IGQKJDkKJDkgJDIKJDkgJDYKJDkgJDcKJDkgJDgKJDkgJDkKJEAKJGEgJGwgJHcgJGEgJHkgJHMKJGMgJGggJGkgJGMgJGsKJGYgJG8gJG8gJHQgJGIgJGEgJGwgJGwKJGkgJGgKJGkgJGwgJG8gJHYgJGUgJHkgJG8gJHUKJGkgJHcKJG4gJDEgJDIKJG8gJGMgJHQKJG8gJHUgJHMKJHEgJHcgJGUgJHIgJHQgJHkKJHMKJHQgJGUgJHMgJHQKJHUgJGgKJHUgJHYKJHYgJHYKJHggJHMKKjAyCiswICswICswIHgxMgo6CkMKRDEKRDIKRDIgRDIKRDMKRDQKRDUKRDYKRDcKRDgKRDkKRSAkMQpLClkxClkxIFkxCloxCloyClsKWyAkMApbICQwICQwClsgJDAgJDEKWyAkMCAkMgpbICQwICQzClsgJDAgJDQKWyAkMCAkNQpbICQwICQ2ClsgJDAgJDcKWyAkMCAkOApbICQwICQ5ClsgJDEKWyAkMSAkMApbICQxICQxClsgJDEgJDIKWyAkMSAkMiAkMwpbICQxICQzClsgJDIKWyAkMiAkMQpbICQyICQyClsgJDIgJDMKWyAkMiAkNApbICQyICQ1ClsgJDMKWyAkMyAkMwpbICQ0ClsgJDUKWyAkNSAkNQpbICQ2ClsgJDYgJDkKWyAkNwpbICQ3ICQ3ClsgJDgKWyAkOCAkOApbICQ5ClsgJDkgJDkKWyBbClsgWyAkMApbIFsgJDEKWyBbICQxICQyClsgWyAkMSAkMiAkMwpbIFsgJDIKWyBbICQzClsgWyAkNApbIFsgJDUKWyBbICQ2ClsgWyAkNwpbIFsgJDgKWyBbICQ5ClsgWyBbClsgWyBbICQxClsgWyBbICQxICQyClsgWyBbICQxICQyICQzClsgWyBbIFsKWyBbIFsgWyBbClsgWyBbIFsgWyBbClsgWyBbIFsgYwpbIFsgWyBbIGQKWyBbIFsgXQpbIFsgWyBdIF0KWyBbIFsgXSBdIF0KWyBbIFsgYwpbIFsgWyBkClsgWyBdClsgWyBdICQxICQyICQzClsgWyBdIF0KWyBbIF5iClsgWyBeYwpbIFsgXmQKWyBbIF5mClsgWyBeZwpbIFsgXmoKWyBbIF5rClsgWyBebApbIFsgXm0KWyBbIF5uClsgWyBecApbIFsgXnIKWyBbIF5zClsgWyBedApbIFsgYwpbIFsgYyAkMQpbIFsgZApbIF0KWyBdICQxICQyICQzClsgXSBdClsgXSBdICQxICQyICQzClsgXjEKWyBeMgpbIF5jClsgXmYKWyBeagpbIF5rClsgXmwKWyBebQpbIF5wClsgXnIKWyBecwpbIF50ClsgYwpbIGMgJDEKXQpdICQwCl0gJDEKXSAkMgpdICQzCl0gJDQKXSAkNQpdICQ2Cl0gJDcKXSAkOApdICQ5Cl0gXQpdIF0gXQpdIF0gXSBdCl4xCl4yCl5hCl5iCl5jCl5kCl5lCl5mCl5qCl5rCl5tCl5wCl5yCl5zCl50Cl55IF5tCmMKYyAkIQpjICQhICQxICQyICQzCmMgJCEgJDIgJDAgJDEgJDgKYyAkISAkMiAkMCAkMSAkOQpjICQhICQyICQwICQyICQwCmMgJCEgJDIgJDAgJDIgJDEKYyAkISAkMiAkMCAkMiAkMgpjICQhICQyICQwICQyICQzCmMgJCEgJDIgJDAgJDIgJDQKYyAkISAkQApjICQhICRAICQjCmMgJCEgJEAgJCMgJCQKYyAkISAkQCAxIwpjICQjCmMgJCQKYyAkMApjICQwICQxCmMgJDAgJDEgJCEgCmMgJDAgJDIKYyAkMCAkMiAkIQpjICQwICQzCmMgJDAgJDMgJCEKYyAkMCAkNApjICQwICQ0ICQhCmMgJDAgJDUKYyAkMCAkNSAkIQpjICQwICQ2CmMgJDAgJDYgJCEKYyAkMCAkNwpjICQwICQ3ICQhCmMgJDAgJDgKYyAkMCAkOCAkIQpjICQwICQ5CmMgJDAgJDkgJCEKYyAkMQpjICQxICQwCmMgJDEgJDAgJCEKYyAkMSAkMQpjICQxICQxICQhCmMgJDEgJDIKYyAkMSAkMiAkIQpjICQxICQyICQzCmMgJDEgJDIgJDMgJCEKYyAkMSAkMiAkMyAkNApjICQxICQyICQzICQ0ICQ1CmMgJDEgJDIgJDMgJDQgJDUgJDYKYyAkMSAkMwpjICQxICQzICQhCmMgJDEgJDQKYyAkMSAkNCAkIQpjICQxICQ1CmMgJDEgJDUgJCEKYyAkMSAkNgpjICQxICQ2ICQhCmMgJDEgJDcKYyAkMSAkNyAkIQpjICQxICQ4CmMgJDEgJDggJCEKYyAkMSAkOQpjICQxICQ5ICQhCmMgJDEgJEAgISMKYyAkMgpjICQyICQwCmMgJDIgJDAgJCEKYyAkMiAkMCAkMSAkOApjICQyICQwICQxICQ4ICQhCmMgJDIgJDAgJDEgJDggJCEgJEAgJCMKYyAkMiAkMCAkMSAkOQpjICQyICQwICQxICQ5ICQhCmMgJDIgJDAgJDEgJDkgJCEgJEAgJCMKYyAkMiAkMCAkMiAkMApjICQyICQwICQyICQwICQhCmMgJDIgJDAgJDIgJDAgJCEgJEAgJCMKYyAkMiAkMCAkMiAkMQpjICQyICQwICQyICQxICQhCmMgJDIgJDAgJDIgJDEgJCEgJEAgJCMKYyAkMiAkMCAkMiAkMgpjICQyICQwICQyICQyICQhCmMgJDIgJDAgJDIgJDIgJCEgJEAgJCMKYyAkMiAkMCAkMiAkMwpjICQyICQwICQyICQzICQhICRAICQjCmMgJDIgJDAgJDIgJDQKYyAkMiAkMCAkMiAkNCAkISAkQCAkIwpjICQyICQxCmMgJDIgJDEgJCEKYyAkMiAkMgpjICQyICQyICQhCmMgJDIgJDMKYyAkMiAkMyAkIQpjICQyICQ0CmMgJDIgJDQgJCEKYyAkMiAkNQpjICQyICQ1ICQhCmMgJDIgJDYKYyAkMiAkNiAkIQpjICQyICQ3CmMgJDIgJDcgJCEKYyAkMiAkOApjICQyICQ4ICQhCmMgJDIgJDkKYyAkMiAkOSAkIQpjICQzCmMgJDMgJDAKYyAkMyAkMCAkIQpjICQzICQxCmMgJDMgJDEgJCEKYyAkNApjICQ1CmMgJDYKYyAkNwpjICQ4CmMgJDkKYyAkQApjIFQzCmMgVDQKYyBUNQpjIFQ2CmMgVDcKZAprCmwKbCAkIQpsICQxCmwgJDEgJDIKbCAkMSQyJDMKbCAkMgpsICQyJDAkMSQ2CmwgJDIkMCQxJDcKbCAkMiQwJDEkOApsICQyJDAkMSQ5CmwgJDIkMCQyJDAKbCAkMiQwJDIkMQpsICQyJDAkMiQyCmwgJDIkMCQyJDMKbCAkMiQwJDIkNApsICQyJDAkMiQ1CmwgJDIkMCQyJDYKbCAkMiQwJDIkNwpsICQyJDAkMiQ4CmwgJDIkMCQyJDkKbCAkNApsIF0gJDAKbCBdICQxCmwgXSAkMgpsIF0gJDMKbCBdICQ0CmwgXSAkNQpsIF0gJDcKbCBdICQ5CmwgaTMgCmwgaTMmCmwgaTMrCmwgaTMtCmwgaTMuCmwgaTQgCmwgaTQmCmwgaTQrCmwgaTQtCmwgaTQuCmwgaTUgCmwgaTUmCmwgaTUrCmwgaTUtCmwgaTUuCmwgaTYgCmwgaTYmCmwgaTYrCmwgaTYtCmwgaTYuCmwgaTcgCmwgaTcmCmwgaTcrCmwgaTctCmwgaTcuCm8wZApvMG0gbzFhCm8wdCBvMGIKbzE3Cm8xOApvMTkKcgpzbzAgc2kxIHNlMyBzcyQgc2FACnUKejEKewp7ICQxCnsgYwp7IHsKeyB7IGMKeyB7IHsKeyB7IHsgewp7IHsgeyB7IHsKfQp9IH0KfSB9IH0=";
+const rulesLines =  atob(rules).split("\n");
 let password = ref('');
-let weakType = ref(0);
-//0 - default
-//1 - found full
-//2 - only with rules
-//3 - full and with rules
-//4 - all good
-let revealed = ref([]);
+let currentProgress=ref(0);
+let progressMessage=ref('');
+let showReport=ref(0);
+let revealed = ref(new Map());
 let isProcessing = ref(false);
 let isHide = ref(true);
-
+let all_in_one_size=ref(267);
 
 const handleLookupMD5 = async (pass) => {
-    const hash=CryptoJS.MD5(pass).toString();
-   const prefix=hash.substring(0, 6);
+   const hash=CryptoJS.MD5(pass).toString();
 
-  const fetchData = async (hash) => {
-    const response = await fetch(`${API_URL}${hash}.json?type=md5`);
-    return response.json();
-  };
-
-
-  let found=false;
     try {
-      let data = await fetchData(prefix); 
-      found = data.flat().some(item => {
-            if (item.hash === hash) {
-                return true;
-            }
-            return false;
-        });
+      let response = await fetch(`${API_URL}${hash.substring(0, 6)}.json?type=md5&filter=hash`); 
+      let data=await response.json();
+    for (const item of data) {
+        if (item && item.hash === hash) {
+          return true;
+        }
+      }
 
 
 
     } catch (error) {
       console.error(`Error fetching data for hash ${hash}:`, error);
     }
-    console.log(found);
-  return found;
+  return false;
 };
-
-
 
 
 
@@ -293,33 +42,109 @@ const handleLookupMD5 = async (pass) => {
 
 const handleLookup = async () => {
     
-    weakType.value=0;
-    revealed.value = [];
+    let candidates=new Map();
+    revealed.value =new Map();
+    currentProgress.value=0;
+    showReport.value=0;
     if(password.value.length==0)return;
     isProcessing.value=true;
-    let passCheckResult = await handleLookupMD5(password.value);
-    if(passCheckResult==true)weakType.value+=1;
-    revealed.value.push({pass: password.value, type:"",found:passCheckResult});
+    progress.value=0;
+    let setRevealedRules=new Set();
+    let setRevealedPasswords=new Set();
+    
 
-    let candidates=generateCandidates(password.value);
-    for (const [key, value] of candidates.entries()) {
+    let reversedPassword=reverse.reversePassword(password.value,true);
+    for (const [key, value] of reversedPassword) {
 
-        passCheckResult = await handleLookupMD5(key);
-
-        if(passCheckResult==true && (weakType.value!=2 && weakType.value!=3))
-        {
-            weakType.value+=2;
-        }
-
-
-        revealed.value.push({pass: key, type:value,found:passCheckResult});
+      if(hashcatEngine.applyRule(key,value)!==password.value)continue;//make a sanity check that we only work with the rules that are fine
+      candidates.set(key, value);
     }
-    if(weakType.value==0)weakType.value=4;
+
+    for (const ruleEntry of rulesLines) {
+      if (!ruleEntry.trim()) continue; 
+      let entries=reverse.applyReverseRule(password.value,ruleEntry);
+      for (const entry of entries) {
+        if (!candidates.has(entry)) {
+
+
+          if(hashcatEngine.applyRule(entry,ruleEntry)!==password.value)continue;//make a sanity check that we only work with the rules that are fine
+          candidates.set(entry, ruleEntry);
+        }
+      }
+    }
+    
+    let passCheckResult = await handleLookupMD5(password.value);
+    if(passCheckResult)
+    {
+      revealed.value.set(password.value,"plain");
+      showReport.value=1;
+    }
+
+
+
+    
+
+
+
+
+    for (const [key, value] of candidates.entries()) {
+        currentProgress.value++;
+        if( Math.round((currentProgress.value / candidates.size) * 100)>progress.value)
+        {
+          if(isHide.value==true)
+          {
+            progressMessage.value=`***** - ${value} (${currentProgress.value} of ${candidates.size})`;
+          }
+          else
+          {
+            progressMessage.value=`${key} - ${value} (${currentProgress.value} of ${candidates.size})`;
+          }
+        }
+        progress.value = Math.round((currentProgress.value / candidates.size) * 100);
+
+        if(setRevealedPasswords.has(key) || setRevealedRules.has(value))continue;
+        passCheckResult = await handleLookupMD5(key);
+        if(!passCheckResult)continue;
+
+        if(!setRevealedPasswords.has(key) && !setRevealedRules.has(value))
+        {
+
+
+
+          if(showReport.value==1)showReport.value=2;
+          if(showReport.value==0)showReport.value=3;
+          setRevealedRules.add(value);
+          setRevealedPasswords.add(key);
+          revealed.value.set(key,value);
+        }
+        
+    }
+
     isProcessing.value=false;
+    if(showReport.value==0)showReport.value=4;
 };
 const toggleHide = () => {
   isHide.value = !isHide.value;
     };
+
+
+const humanReadable = computed(() => {
+  const num = all_in_one_size.value * 100_000_000* currentProgress.value
+
+  const format = (n, word) =>
+    Number.isInteger(n) ? `${n} ${word}` : `${n.toFixed(1)} ${word}`
+
+  if (num >= 1e15) return format(num / 1e15, "quadrillion")
+  if (num >= 1e12) return format(num / 1e12, "trillion")
+  if (num >= 1e9)  return format(num / 1e9, "billion")
+  if (num >= 1e6)  return format(num / 1e6, "million")
+  if (num >= 1e3)  return format(num / 1e3, "thousand")
+
+  return num.toString()
+})
+
+
+    
 </script>
 
 
@@ -334,7 +159,7 @@ const toggleHide = () => {
 
         <div class="column is-12 ml-auto">
             <h2 class="mb-5 is-size-1 is-size-3-mobile has-text-weight-bold">Has your password been compromised?</h2>
-            <h2 class="subtitle">Find out if your password exists in the <em>weakpass_4</em> wordlist or if it could be cracked using advanced rule-based techniques.</h2>
+            <h2 class="subtitle">Find out if your password exists in the <a href="https://weakpass.com/all_in_one">all_in_one</a> wordlist with <strong>27 Billion of passwords</strong> or if it could be cracked using advanced <a href="https://hashcat.net/wiki/doku.php?id=rule_based_attack" target="_blank">rule-based</a> techniques.</h2>
         </div>
         <div class="column is-12 ml-auto">
             <form @submit.prevent="handleLookup">
@@ -363,7 +188,7 @@ const toggleHide = () => {
 </span>
 
 <span v-if="!isProcessing">
-  Search
+  Check
 </span>
 
 
@@ -377,24 +202,77 @@ const toggleHide = () => {
         </div>
 
 
-        <div class="column is-12 ml-auto">
-            <div class="notification is-danger" v-if="weakType == 1">
-                This password is in the weakpass wordlist. You must change it immediately!
-            </div>
-            <div class="notification is-danger" v-if="weakType == 3">
-                This password is in the weakpass wordlist, and some of its variations are also found. You must change it immediately!
-            </div>
-            <div class="notification is-warning" v-if="weakType == 2">
-                This password is not currently compromised, but it could be cracked using common hashcat rules. It's recommended to change it.
-            </div>
-            <div class="notification is-primary" v-if="weakType == 4">
-                This password is strong! It was not found in the weakpass wordlist and cannot be cracked using common hashcat rules!
+
+
+        <div class="column is-12 ml-auto" v-if="isProcessing">
+            <div class="notification is-info">
+
+              <div class="field">
+                <label class="label">Progress {{progressMessage}}</label>
+                <div class="control">
+                  <progress  class="progress" :value="progress" max="100">{{ progress }}%</progress>
+                </div>
+              </div>
+
+                
             </div>
         </div>
 
 
 
-        <div class="column is-12" v-if="revealed.length">
+
+        <div class="column is-12 ml-auto">
+            <div class="notification is-danger" v-if="showReport == 1">
+                
+                <div class="content">
+                  This password is in the weakpass wordlist. You must change it immediately!
+              <ul>
+                  <li>Your password <strong>was found</strong> in the wordlist!</li>
+                  <li><i>Password was checked across <strong>{{humanReadable}}</strong> passwords</i></li>
+                </ul>
+</div>
+
+            </div>
+            <div class="notification is-danger" v-if="showReport == 2">
+                
+<div class="content">
+  This password is in the weakpass wordlist, and some of its variations are also found. You must change it immediately!
+              <ul>
+                  <li>Your password <strong>was found</strong> in the <a href="https://weakpass.com/all_in_one">all_in_one</a> wordlist!</li>
+                  <li>It was found <strong>{{  revealed.size }}</strong> rules, that can be used to crack your password.</li>
+                  <li><i>Password was checked across <strong>{{humanReadable}}</strong> passwords</i></li>
+                </ul>
+</div>
+
+            </div>
+            <div class="notification is-warning" v-if="showReport == 3">
+                
+                <div class="content">
+                  This password is not currently compromised, but it could be cracked using common hashcat rules. It's recommended to change it.
+              <ul>
+                  <li>Your password <strong>is not</strong> in the <a href="https://weakpass.com/all_in_one">all_in_one</a> wordlist</li>
+                  <li>It was found <strong>{{  revealed.size }}</strong> rules, that can be used to crack your password.</li>
+                  <li><i>Password was checked across <strong>{{humanReadable}}</strong> passwords</i></li>
+                </ul>
+                </div>
+            </div>
+            <div class="notification is-primary" v-if="showReport == 4">
+                
+                <div class="content">
+                  This password is <strong>strong</strong>!
+                <ul>
+                  <li>It was not found in the weakpass wordlist and cannot be cracked using common <a href="https://hashcat.net/wiki/doku.php?id=rule_based_attack" target="_blank">hashcat rules</a>!</li>
+                  <li><i>Password was checked across <strong>{{humanReadable}}</strong> passwords </i></li>
+                </ul>
+</div>
+
+
+            </div>
+        </div>
+
+
+
+        <div class="column is-12" v-if="revealed.size">
     <div class=" px-0">
 
       <div>
@@ -411,20 +289,13 @@ const toggleHide = () => {
             </tr>
           </thead>
           <tbody>
-            <tr  v-for="(item, index) in revealed" :key="index">
-                <td> 
-
-                    <span v-if="item.found" class="has-text-danger">&check;</span>
-                    <span v-else class="has-text-success">&cross;</span>
-
-
-                </td>
-
-              <td v-if="!isHide"> {{ item.pass }}</td>
+           <tr v-for="[key, value] in Array.from(revealed.entries())" :key="key">
+              <td><span class="has-text-danger">&check;</span></td>
+              <td v-if="!isHide"> {{ key }}</td>
               <td v-else> ******</td>
 
 
-              <td>{{ item.type }}</td>
+              <td>{{ value }}</td>
 
             </tr>
 
@@ -433,17 +304,17 @@ const toggleHide = () => {
 
           </tbody>
         </table>
-<ul>
-       <li> <span class="has-text-danger">&check; - password <b>was found</b> in weakpass</span></li>
-       <li> <span class="has-text-success">&cross; - all good, password <b>was not found</b></span></li>
-    </ul>
-
 
       </div>
     </div>
   </div>
     </div>
   </div>
+
+
+
+
+
 
 
 
@@ -452,37 +323,13 @@ const toggleHide = () => {
 
 
   <div class="column is-12 is-12-desktop ml-auto">
-  <div>
-    <div class="mb-4 is-flex">
-  <div>
-    <p class="has-text-grey-dark">
-      All checks happen client-side, so <strong>your password is never sent to the backend</strong>. Learn more in our <a href="https://weakpass.com/api" target="_blank">API section</a>.
-    </p>
-  </div>
+<div class="content">
+<ul>
+<li>All checks happen client-side, so <strong>your password is never sent to the backend</strong>. Learn more in our <a href="https://weakpass.com/api" target="_blank">API section</a>.</li>
+<li><a href="https://weakpass.com/api" target="_blank">Weakpass API</a> is free and could be used without any limitations.</li>
+        <li>The tool simulates <strong>password mutations with hashcat rules</strong> to check if your password could be cracked with rule based attacks.</li>
+</ul>
 </div>
-<div class="mb-4 is-flex">
-  <div>
-    <p class="has-text-grey-dark">
-        The tool simulates <strong>password mutations with hashcat rules</strong> to check if your password could be cracked with rule based attacks.
-
-    </p>
-  </div>
-</div>
-<div class="mb-4 is-flex">
-  <div>
-    <p class="has-text-grey-dark">
-      Building a similar tool? Download <a href="https://weakpass.com/pre-computed" target="_blank">precomputed tables</a> today and make your own lookup tool.
-    </p>
-  </div>
-</div>
-<div class="mb-4 is-flex">
-  <div>
-    <p class="has-text-grey-dark">
-      <strong>TL;DR:</strong> Use a password manager like <em>1Password</em> or <em>KeePass</em> to create strong, unique passwords and stay secure online.
-    </p>
-  </div>
-</div>
-  </div>
 </div>
 
 
@@ -497,6 +344,15 @@ const toggleHide = () => {
 
 
       </div>
+      <section class="hero is-primary">
+  <div class="hero-body">
+    <p class="title">TL;DR</p>
+    <p class="subtitle">Use a password manager like <em>1Password</em> or <em>KeePass</em> to create strong, unique passwords and stay secure online.</p>
+
+
+
+  </div>
+</section>
     </div>
 
 
@@ -507,6 +363,7 @@ const toggleHide = () => {
     <br/>
 
 </section>
+
 
 
 </template>

@@ -1,0 +1,75 @@
+name: Deploy weakpass to GitHub Pages
+
+# Builds the weakpass-hub (Vite) on every push to main and publishes the
+# landing page + all tools to GitHub Pages.
+#
+# One-time setup: in the repo, Settings → Pages → "Build and deployment" →
+# Source: "GitHub Actions" (instead of "Deploy from a branch").
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment; newer pushes cancel in-progress runs.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: tools/weakpass-hub/package-lock.json
+
+      - name: Build weakpass-hub
+        working-directory: tools/weakpass-hub
+        run: |
+          npm ci
+          npm run build
+
+      - name: Assemble site
+        run: |
+          set -e
+          rm -rf _site
+          mkdir -p _site
+          cp index.html _site/index.html
+          # unified hub (built above)
+          mkdir -p _site/tools/weakpass-hub/dist
+          cp -r tools/weakpass-hub/dist/. _site/tools/weakpass-hub/dist/
+          # standalone tools ship a prebuilt dist/ in the repo
+          for t in passgen passcheck lookup; do
+            mkdir -p "_site/tools/$t/dist"
+            cp -r "tools/$t/dist/." "_site/tools/$t/dist/"
+          done
+          # keep asset paths verbatim (no Jekyll processing)
+          touch _site/.nojekyll
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

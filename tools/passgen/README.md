@@ -104,7 +104,7 @@ All data is generated using Javascript so that you can use the generator without
 # How-to
 
 <p align="center">
-  <img src="https://github.com/zzzteph/weakpass/blob/main/generator/howto.gif?raw=true"  height="350">
+  <img src="https://github.com/zzzteph/weakpass/blob/main/tools/passgen/howto.gif?raw=true"  height="350">
 </p>
 
 

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>weakpass · tools</title>
+<meta name="description" content="weakpass tools — a wordlist generator, password compromise check, range hash lookup, and a 100% client-side crack toolkit (identify, generate, benchmark, crack, extract). Everything runs in your browser." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23485fc7'/%3E%3Ctext x='50' y='72' font-size='64' text-anchor='middle' fill='white' font-family='monospace'%3Ew%3C/text%3E%3C/svg%3E" />
+<style>
+  :root { --bg:#12141c; --bg2:#1b1d29; --card:#1f2230; --border:#2c3042; --fg:#e7e9f3; --dim:#9aa0bd; --accent:#7c8cf8; --accent2:#485fc7; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; }
+  body {
+    background:var(--bg); color:var(--fg); min-height:100vh;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    background-image:radial-gradient(120% 80% at 50% -20%, var(--bg2) 0%, var(--bg) 60%);
+    line-height:1.5;
+  }
+  .mono { font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+  .wrap { max-width:960px; margin:0 auto; padding:5rem 1.5rem 4rem; }
+  a { color:var(--accent); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+
+  .brand { font-size:clamp(2.4rem,7vw,3.6rem); font-weight:800; letter-spacing:.01em; margin:0; }
+  .brand .sep { color:var(--accent); }
+  .tag { color:var(--dim); font-size:1.05rem; margin:.6rem 0 2.4rem; max-width:60ch; }
+  .tag b { color:var(--fg); }
+
+  .feature {
+    display:block; border:1px solid var(--accent2); border-radius:12px; background:linear-gradient(180deg,#232741,#1c1f2e);
+    padding:1.4rem 1.5rem; margin-bottom:1.5rem; color:inherit;
+  }
+  .feature:hover { border-color:var(--accent); text-decoration:none; transform:translateY(-1px); }
+  .feature h2 { margin:0 0 .3rem; font-size:1.3rem; }
+  .feature .arrow { float:right; color:var(--accent); font-size:1.3rem; }
+  .feature p { margin:0; color:var(--dim); font-size:.92rem; }
+  .chips { margin-top:.7rem; display:flex; flex-wrap:wrap; gap:.4rem; }
+  .chip { font-size:.72rem; color:var(--dim); border:1px solid var(--border); border-radius:999px; padding:.15rem .6rem; }
+
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1rem; }
+  .card { display:block; border:1px solid var(--border); border-radius:12px; background:var(--card); padding:1.1rem 1.2rem; color:inherit; }
+  .card:hover { border-color:var(--accent); text-decoration:none; transform:translateY(-1px); }
+  .card h3 { margin:0 0 .2rem; font-size:1.05rem; }
+  .card h3 .g { color:var(--accent); margin-right:.4rem; }
+  .card p { margin:0; color:var(--dim); font-size:.85rem; }
+  .card, .feature { transition:border-color .15s, transform .15s; }
+
+  .sect { color:var(--dim); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; margin:2rem 0 .8rem; }
+  footer { margin-top:3rem; color:var(--dim); font-size:.85rem; }
+  footer a { color:var(--dim); } footer a:hover { color:var(--accent); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 class="brand mono">weak<span class="sep">·</span>pass</h1>
+    <p class="tag">
+      Password &amp; hash cracking tools — a <b>wordlist generator</b>, <b>password check</b>,
+      <b>hash lookup</b>, and a full <b>client-side crack toolkit</b>. No server, nothing uploaded —
+      everything runs in your browser.
+    </p>
+
+    <a class="feature" href="tools/weakpass-hub/dist/">
+      <span class="arrow">→</span>
+      <h2>⭐ Weakpass Hub</h2>
+      <p>Every tool in one app — the fastest way in.</p>
+      <div class="chips">
+        <span class="chip">passgen</span><span class="chip">passcheck</span><span class="chip">lookup</span>
+        <span class="chip">identify</span><span class="chip">generate</span><span class="chip">benchmark</span>
+        <span class="chip">crack</span><span class="chip">extract</span>
+      </div>
+    </a>
+
+    <div class="sect">standalone tools</div>
+    <div class="grid">
+      <a class="card" href="tools/passgen/dist/"><h3><span class="g mono">≡</span>Passgen</h3><p>Rule-based wordlist generator.</p></a>
+      <a class="card" href="tools/passcheck/dist/"><h3><span class="g mono">✓</span>Passcheck</h3><p>Is my password compromised?</p></a>
+      <a class="card" href="tools/lookup/dist/"><h3><span class="g mono">⌕</span>Lookup</h3><p>Range hash lookup (MD5/NTLM/SHA1/SHA256).</p></a>
+    </div>
+
+    <footer>
+      <a href="https://weakpass.com" target="_blank" rel="noopener">weakpass.com ↗</a>
+      &nbsp;·&nbsp;
+      <a href="https://github.com/zzzteph/weakpass" target="_blank" rel="noopener">github.com/zzzteph/weakpass ↗</a>
+      &nbsp;·&nbsp; 100% client-side
+    </footer>
+  </div>
+</body>
+</html>

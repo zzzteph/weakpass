@@ -11,7 +11,7 @@ Here, you can find the list of tools and example of API server from [weakpass.co
 
 - **tools**
   - A collection of password and hash cracking tools. **Check them out:**
-    - [Kraker-js](https://zzzteph.github.io/weakpass/tools/kraker-js/dist/)
+    - ⭐ **[Weakpass Hub](https://zzzteph.github.io/weakpass/tools/weakpass-hub/dist/) — all tools in one place** (wordlist generator · password check · lookup · identify · generate · benchmark · crack · extract)
     - [Lookup](https://zzzteph.github.io/weakpass/tools/lookup/dist/)
     - [Passcheck](https://zzzteph.github.io/weakpass/tools/passcheck/dist/)
     - [Passgen](https://zzzteph.github.io/weakpass/tools/passgen/dist/)
@@ -59,8 +59,6 @@ Reveal passwords for MD5, NTLM, SHA1, or SHA256 hashes using the precomputed wor
 
 Additionally, you can host and build the database for this tool locally and in-house. To do so, use one of the precomputed tables available [here](https://weakpass.com/pre-computed) and set up an API to serve hash ranges by value.
 
-A server example that "works" with this database structure can be found in the repository.
-
 
 ---
 
@@ -86,20 +84,7 @@ Beyond that, it simulates rule-based attacks by applying "reverse" hashcat rules
 
 ---
 
-# Kraker-JS
-
-Crack hashes directly in your browser with this JavaScript-based tool.
-
-**Try it online:** [Kraker-js](https://zzzteph.github.io/weakpass/tools/kraker-js/dist/)
-
-<p align="center">
-  <img src="https://github.com/zzzteph/weakpass/blob/main/tools/kraker-js/kraker.PNG?raw=true"  height="250">
-</p>
-
-#### Features
-- **Hash Types Supported:** MD5, SHA1, crypt functions, JWT, Net-NTLMv2, and more.
-- **Parallel Cracking:** Run multiple tasks simultaneously for efficient processing.
-- **Pure JS and client-side**
+The client-side hash cracker (formerly the standalone **Kraker-JS**) now lives as the **Crack** and **Benchmark** tabs inside the [Weakpass Hub](https://zzzteph.github.io/weakpass/tools/weakpass-hub/dist/).
 
 
 

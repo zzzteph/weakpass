@@ -3,65 +3,84 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>weakpass · tools</title>
+<title>weakpass tools</title>
 <meta name="description" content="weakpass tools — a wordlist generator, password compromise check, range hash lookup, and a 100% client-side crack toolkit (identify, generate, benchmark, crack, extract). Everything runs in your browser." />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23485fc7'/%3E%3Ctext x='50' y='72' font-size='64' text-anchor='middle' fill='white' font-family='monospace'%3Ew%3C/text%3E%3C/svg%3E" />
+<meta name="theme-color" content="#0c0e0d" />
+<link rel="canonical" href="https://tools.weakpass.com/" />
+
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="weakpass" />
+<meta property="og:title" content="weakpass tools" />
+<meta property="og:description" content="Wordlist generator, password check, hash lookup, and a 100% client-side crack toolkit — all in your browser." />
+<meta property="og:url" content="https://tools.weakpass.com/" />
+<meta property="og:image" content="https://tools.weakpass.com/cracker.png" />
+<meta property="og:image:alt" content="weakpass tools" />
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="weakpass tools" />
+<meta name="twitter:description" content="Wordlist generator, password check, hash lookup, and a 100% client-side crack toolkit — all in your browser." />
+<meta name="twitter:image" content="https://tools.weakpass.com/cracker.png" />
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%2354cf8a'/%3E%3Ctext x='50' y='73' font-size='64' text-anchor='middle' fill='%23001510' font-family='monospace'%3Ew%3C/text%3E%3C/svg%3E" />
 <style>
-  :root { --bg:#12141c; --bg2:#1b1d29; --card:#1f2230; --border:#2c3042; --fg:#e7e9f3; --dim:#9aa0bd; --accent:#7c8cf8; --accent2:#485fc7; }
+  :root {
+    --bg:#0c0e0d; --bg2:#101312; --panel:#121513; --raised:#171a18;
+    --border:#232826; --border2:#343b37; --fg:#dde2df; --dim:#8a928c; --accent:#54cf8a;
+    --mono:'JetBrains Mono','Fira Code','Cascadia Code',ui-monospace,'SFMono-Regular',Menlo,Consolas,'DejaVu Sans Mono',monospace;
+  }
   * { box-sizing:border-box; }
   html,body { margin:0; }
   body {
-    background:var(--bg); color:var(--fg); min-height:100vh;
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
-    background-image:radial-gradient(120% 80% at 50% -20%, var(--bg2) 0%, var(--bg) 60%);
-    line-height:1.5;
+    background:var(--bg); color:var(--fg); min-height:100vh; font-family:var(--mono); font-size:14px; line-height:1.6;
+    background-image:radial-gradient(120% 90% at 50% -10%, var(--bg2) 0%, var(--bg) 62%);
+    -webkit-font-smoothing:antialiased;
   }
-  .mono { font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
-  .wrap { max-width:960px; margin:0 auto; padding:5rem 1.5rem 4rem; }
+  ::selection { background:var(--accent); color:#001510; }
   a { color:var(--accent); text-decoration:none; }
   a:hover { text-decoration:underline; }
+  .wrap { max-width:940px; margin:0 auto; padding:5rem 1.5rem 4rem; }
 
-  .brand { font-size:clamp(2.4rem,7vw,3.6rem); font-weight:800; letter-spacing:.01em; margin:0; }
-  .brand .sep { color:var(--accent); }
-  .tag { color:var(--dim); font-size:1.05rem; margin:.6rem 0 2.4rem; max-width:60ch; }
+  .brand { font-size:clamp(2.4rem,7vw,3.6rem); font-weight:800; letter-spacing:.02em; margin:0; color:var(--accent); }
+  .brand .sep { color:var(--dim); }
+  .brand .t { color:var(--dim); }
+  .tag { color:var(--dim); font-size:.95rem; margin:.7rem 0 2.4rem; max-width:64ch; }
   .tag b { color:var(--fg); }
+  .tag::before { content:"$ "; color:var(--accent); }
 
-  .feature {
-    display:block; border:1px solid var(--accent2); border-radius:12px; background:linear-gradient(180deg,#232741,#1c1f2e);
-    padding:1.4rem 1.5rem; margin-bottom:1.5rem; color:inherit;
-  }
-  .feature:hover { border-color:var(--accent); text-decoration:none; transform:translateY(-1px); }
-  .feature h2 { margin:0 0 .3rem; font-size:1.3rem; }
-  .feature .arrow { float:right; color:var(--accent); font-size:1.3rem; }
-  .feature p { margin:0; color:var(--dim); font-size:.92rem; }
+  .feature { display:block; border:1px solid var(--accent); border-radius:10px; background:linear-gradient(180deg,#15271d,#121513); padding:1.3rem 1.4rem; margin-bottom:1.4rem; color:inherit; transition:transform .15s, box-shadow .15s; }
+  .feature:hover { text-decoration:none; transform:translateY(-1px); box-shadow:0 0 0 1px var(--accent); }
+  .feature h2 { margin:0 0 .3rem; font-size:1.2rem; color:var(--accent); }
+  .feature h2 .arrow { float:right; }
+  .feature p { margin:0; color:var(--dim); font-size:.85rem; }
   .chips { margin-top:.7rem; display:flex; flex-wrap:wrap; gap:.4rem; }
-  .chip { font-size:.72rem; color:var(--dim); border:1px solid var(--border); border-radius:999px; padding:.15rem .6rem; }
+  .chip { font-size:.68rem; color:var(--dim); border:1px solid var(--border2); border-radius:4px; padding:.12rem .5rem; }
+  .chip::before { content:"./"; color:var(--accent); opacity:.7; }
 
+  .sect { color:var(--dim); font-size:.66rem; letter-spacing:.18em; text-transform:uppercase; margin:2rem 0 .8rem; }
   .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1rem; }
-  .card { display:block; border:1px solid var(--border); border-radius:12px; background:var(--card); padding:1.1rem 1.2rem; color:inherit; }
+  .card { display:block; border:1px solid var(--border2); border-radius:10px; background:var(--panel); padding:1.05rem 1.15rem; color:inherit; transition:border-color .15s, transform .15s; }
   .card:hover { border-color:var(--accent); text-decoration:none; transform:translateY(-1px); }
-  .card h3 { margin:0 0 .2rem; font-size:1.05rem; }
-  .card h3 .g { color:var(--accent); margin-right:.4rem; }
-  .card p { margin:0; color:var(--dim); font-size:.85rem; }
-  .card, .feature { transition:border-color .15s, transform .15s; }
+  .card h3 { margin:0 0 .2rem; font-size:1rem; color:var(--fg); }
+  .card h3::before { content:"./"; color:var(--accent); }
+  .card p { margin:0; color:var(--dim); font-size:.8rem; }
 
-  .sect { color:var(--dim); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; margin:2rem 0 .8rem; }
-  footer { margin-top:3rem; color:var(--dim); font-size:.85rem; }
+  footer { margin-top:3rem; color:var(--dim); font-size:.8rem; }
+  footer::before { content:"# "; color:var(--accent); }
   footer a { color:var(--dim); } footer a:hover { color:var(--accent); }
 </style>
 </head>
 <body>
   <div class="wrap">
-    <h1 class="brand mono">weak<span class="sep">·</span>pass</h1>
+    <h1 class="brand">weak<span class="sep">·</span>pass <span class="t">tools</span></h1>
     <p class="tag">
       Password &amp; hash cracking tools — a <b>wordlist generator</b>, <b>password check</b>,
       <b>hash lookup</b>, and a full <b>client-side crack toolkit</b>. No server, nothing uploaded —
       everything runs in your browser.
     </p>
 
-    <a class="feature" href="tools/weakpass-hub/dist/">
-      <span class="arrow">→</span>
-      <h2>⭐ Weakpass Hub</h2>
+    <a class="feature" href="tools/weakpass-tools/dist/">
+      <h2>weakpass tools <span class="arrow">→</span></h2>
       <p>Every tool in one app — the fastest way in.</p>
       <div class="chips">
         <span class="chip">passgen</span><span class="chip">passcheck</span><span class="chip">lookup</span>
@@ -70,11 +89,11 @@
       </div>
     </a>
 
-    <div class="sect">standalone tools</div>
+    <div class="sect">// standalone tools</div>
     <div class="grid">
-      <a class="card" href="tools/passgen/dist/"><h3><span class="g mono">≡</span>Passgen</h3><p>Rule-based wordlist generator.</p></a>
-      <a class="card" href="tools/passcheck/dist/"><h3><span class="g mono">✓</span>Passcheck</h3><p>Is my password compromised?</p></a>
-      <a class="card" href="tools/lookup/dist/"><h3><span class="g mono">⌕</span>Lookup</h3><p>Range hash lookup (MD5/NTLM/SHA1/SHA256).</p></a>
+      <a class="card" href="tools/passgen/dist/"><h3>passgen</h3><p>Rule-based wordlist generator.</p></a>
+      <a class="card" href="tools/passcheck/dist/"><h3>passcheck</h3><p>Is my password compromised?</p></a>
+      <a class="card" href="tools/lookup/dist/"><h3>lookup</h3><p>Range hash lookup (MD5/NTLM/SHA1/SHA256).</p></a>
     </div>
 
     <footer>

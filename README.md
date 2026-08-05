@@ -11,10 +11,10 @@ Here, you can find the list of tools and example of API server from [weakpass.co
 
 - **tools**
   - A collection of password and hash cracking tools. **Check them out:**
-    - ⭐ **[Weakpass Hub](https://zzzteph.github.io/weakpass/tools/weakpass-hub/dist/) — all tools in one place** (wordlist generator · password check · lookup · identify · generate · benchmark · crack · extract)
-    - [Lookup](https://zzzteph.github.io/weakpass/tools/lookup/dist/)
-    - [Passcheck](https://zzzteph.github.io/weakpass/tools/passcheck/dist/)
-    - [Passgen](https://zzzteph.github.io/weakpass/tools/passgen/dist/)
+    - ⭐ **[weakpass tools](https://tools.weakpass.com/tools/weakpass-tools/dist/) — all tools in one place** (wordlist generator · password check · lookup · identify · generate · benchmark · crack · extract)
+    - [Lookup](https://tools.weakpass.com/tools/lookup/dist/)
+    - [Passcheck](https://tools.weakpass.com/tools/passcheck/dist/)
+    - [Passgen](https://tools.weakpass.com/tools/passgen/dist/)
 
 - **libs**
   - Links to the libraries used in this project.
@@ -33,7 +33,7 @@ All of the tools and libraries you can find in separate folders, a quick overvie
 
 Generate a wordlist based on user-provided keywords for targeted password testing.
 
-**Try it online:** [Passgen](https://zzzteph.github.io/weakpass/tools/passgen/dist/)
+**Try it online:** [Passgen](https://tools.weakpass.com/tools/passgen/dist/)
 
 <p align="center">
   <img src="https://github.com/zzzteph/weakpass/blob/main/tools/passgen/sample.png?raw=true"  height="250">
@@ -48,7 +48,7 @@ For example, during penetration testing, you need to gain access to some service
 
 Perform secure hash lookups without submitting sensitive data to a server using the Range API.
 
-**Try it online:** [Lookup](https://zzzteph.github.io/weakpass/tools/lookup/dist/)
+**Try it online:** [Lookup](https://tools.weakpass.com/tools/lookup/dist/)
 
 
 <p align="center">
@@ -66,7 +66,7 @@ Additionally, you can host and build the database for this tool locally and in-h
 
 Determine if your password **has been compromised** or is vulnerable to rule-based attacks.
 
-Online: [Passcheck](https://zzzteph.github.io/weakpass/tools/passcheck/dist/)
+Online: [Passcheck](https://tools.weakpass.com/tools/passcheck/dist/)
 
 <p align="center">
   <img src="https://github.com/zzzteph/weakpass/blob/main/tools/passcheck/passcheck.PNG?raw=true"  height="250">
@@ -84,7 +84,7 @@ Beyond that, it simulates rule-based attacks by applying "reverse" hashcat rules
 
 ---
 
-The client-side hash cracker (formerly the standalone **Kraker-JS**) now lives as the **Crack** and **Benchmark** tabs inside the [Weakpass Hub](https://zzzteph.github.io/weakpass/tools/weakpass-hub/dist/).
+The client-side hash cracker (formerly the standalone **Kraker-JS**) now lives as the **Crack** and **Benchmark** tabs inside the [weakpass tools](https://tools.weakpass.com/tools/weakpass-tools/dist/).
 
 
 

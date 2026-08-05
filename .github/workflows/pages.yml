@@ -1,6 +1,6 @@
 name: Deploy weakpass to GitHub Pages
 
-# Builds the weakpass-hub (Vite) on every push to main and publishes the
+# Builds the weakpass-tools app (Vite) on every push to main and publishes the
 # landing page + all tools to GitHub Pages.
 #
 # One-time setup: in the repo, Settings → Pages → "Build and deployment" →
@@ -33,10 +33,10 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: tools/weakpass-hub/package-lock.json
+          cache-dependency-path: tools/weakpass-tools/package-lock.json
 
-      - name: Build weakpass-hub
-        working-directory: tools/weakpass-hub
+      - name: Build weakpass-tools
+        working-directory: tools/weakpass-tools
         run: |
           npm ci
           npm run build
@@ -47,9 +47,11 @@ jobs:
           rm -rf _site
           mkdir -p _site
           cp index.html _site/index.html
-          # unified hub (built above)
-          mkdir -p _site/tools/weakpass-hub/dist
-          cp -r tools/weakpass-hub/dist/. _site/tools/weakpass-hub/dist/
+          cp cracker.png _site/cracker.png            # social / OG image
+          echo 'tools.weakpass.com' > _site/CNAME      # custom domain
+          # unified app (built above)
+          mkdir -p _site/tools/weakpass-tools/dist
+          cp -r tools/weakpass-tools/dist/. _site/tools/weakpass-tools/dist/
           # standalone tools ship a prebuilt dist/ in the repo
           for t in passgen passcheck lookup; do
             mkdir -p "_site/tools/$t/dist"

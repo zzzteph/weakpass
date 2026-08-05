@@ -2,7 +2,7 @@
 
 Generate a wordlist based on user-provided keywords for targeted password testing.
 
-**Try it online:** [Passgen](https://zzzteph.github.io/weakpass/tools/passgen/dist/)
+**Try it online:** [Passgen](https://tools.weakpass.com/tools/passgen/dist/)
 
 <p align="center">
   <img src="https://github.com/zzzteph/weakpass/blob/main/tools/passgen/sample.png?raw=true"  height="250">

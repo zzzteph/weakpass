@@ -172,7 +172,7 @@ onMounted(() => {
 
 <p class="is-hidden-mobile">You can use <a href="https://hashcat.net/wiki/doku.php?id=rule_based_attack">hashcat rules</a> to generate a wordlist. By default, the generator will use its own rules, which you can find here or click on <strong>"Show rules"</strong>.</p>
 
-<p class="is-hidden-mobile">Follow the project on <a href="https://github.com/zzzteph/weakpass">Github</a> or <a href="https://zzzteph.github.io/weakpass/">pages</a></p>
+<p class="is-hidden-mobile">Follow the project on <a href="https://github.com/zzzteph/weakpass">Github</a> or <a href="https://tools.weakpass.com/">pages</a></p>
 
 </div>
 

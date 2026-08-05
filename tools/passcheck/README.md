@@ -3,7 +3,7 @@
 
 Discover if your password is in the weakpass_4 wordlist or vulnerable to advanced rule-based attacks.
 
-Online: [Passcheck](https://zzzteph.github.io/weakpass/tools/passcheck/dist/)
+Online: [Passcheck](https://tools.weakpass.com/tools/passcheck/dist/)
 
 <p align="center">
   <img src="https://github.com/zzzteph/weakpass/blob/main/tools/passcheck/passcheck.PNG?raw=true"  height="250">

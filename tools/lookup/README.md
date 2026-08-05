@@ -2,7 +2,7 @@
 
 Perform secure password hash lookups using the Range API without submitting sensitive data to the server.
 
-**Try it online:** [Lookup](https://zzzteph.github.io/weakpass/tools/lookup/dist/)
+**Try it online:** [Lookup](https://tools.weakpass.com/tools/lookup/dist/)
 
 
 <p align="center">

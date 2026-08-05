@@ -62,8 +62,8 @@ onMounted(() => { modeCount.value = Array.isArray(hashcat.hashTypes) ? hashcat.h
   <div class="hub">
     <nav class="hub-sidebar">
       <div>
-        <div class="hub-brand">weak<span class="sep">·</span>pass<span class="beta">HUB</span></div>
-        <div class="hub-tagline">password &amp; hash cracking tools — 100% in your browser</div>
+        <div class="hub-brand">weak<span class="sep">·</span>pass</div>
+        <div class="hub-tagline">// tools · runs in your browser</div>
       </div>
 
       <div class="hub-nav">

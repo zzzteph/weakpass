@@ -1,5 +1,5 @@
 {
-  "name": "weakpass-hub",
+  "name": "weakpass-tools",
   "version": "1.0.0",
   "private": true,
   "description": "Unified weakpass toolkit — wordlist generator, password check, hash lookup, and a client-side crack toolkit (identify / generate / benchmark / crack / extract).",

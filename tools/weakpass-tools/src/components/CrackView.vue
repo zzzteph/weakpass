@@ -23,10 +23,11 @@ const hashType = ref('auto')
 const availableHashTypes = hashcat.availableHashTypes || []
 const useRules = ref(false)
 const rulesText = ref(':\nc\n$1\n$1 $2 $3\nr')
+const hashFileRef = ref(null)
+const wlFileRef = ref(null)
 
 const RULE_PRESETS = {
   digit: ':\n$0\n$1\n$2\n$3\n$4\n$5\n$6\n$7\n$8\n$9',
-  digit2: ':\n$1 $2 $3\n$2 $0 $2 $5\n$2 $0 $2 $6',
   capdigit: 'c\nc $1\nc $2 $0 $2 $6\nc $!',
   leet: 'sa@\nse3\nsi1\nso0\nss$\nsa@ se3 si1 so0 ss$',
   best: ':\nc\nu\nr\nd\n$1\n$1 $2 $3\n^1'
@@ -117,88 +118,71 @@ function download() {
 
 <template>
   <div>
-    <h1 class="title is-4"><span class="wp-mono has-text-link">./crack</span> — dictionary + rules</h1>
-    <p class="subtitle is-6">
+    <h2 class="ptitle"><span class="cmd">./crack</span> — dictionary + rules</h2>
+    <p class="psub">
       Paste target hashes, pick a wordlist (and optional <a href="https://hashcat.net/wiki/doku.php?id=rule_based_attack" target="_blank" rel="noopener">rules</a>),
       and crack in a background Web Worker — 100% client-side. Best for fast modes (md5, sha1, ntlm, …).
     </p>
 
-    <div class="field">
-      <label class="label">Target hashes <span class="has-text-weight-normal has-text-grey is-size-7">(one per line)</span></label>
-      <div class="control">
-        <textarea class="textarea wp-mono" rows="4" v-model="hashesText" placeholder="5f4dcc3b5aa765d61d8327deb882cf99"></textarea>
-      </div>
-      <div class="file is-small mt-2">
-        <label class="file-label">
-          <input class="file-input" type="file" @change="onHashFile" />
-          <span class="file-cta"><span class="file-label">…or load a hash file</span></span>
-        </label>
-      </div>
-    </div>
-
-    <div class="field is-grouped is-grouped-multiline is-align-items-center">
-      <div class="control">
-        <label class="label is-small mb-1">Hash type</label>
-        <div class="select is-small">
+    <div class="field-block">
+      <label class="blocklabel">target hashes <span class="hint">— one per line</span></label>
+      <textarea v-model="hashesText" rows="4" placeholder="5f4dcc3b5aa765d61d8327deb882cf99"></textarea>
+      <div class="controls" style="margin-top:8px">
+        <button class="btn ghost sm" @click="hashFileRef.click()">load hash file</button>
+        <input ref="hashFileRef" type="file" style="display:none" @change="onHashFile" />
+        <label class="field">hash type
           <select v-model="hashType">
             <option value="auto">auto-detect</option>
             <option v-for="t in availableHashTypes" :key="t" :value="t">{{ t }}</option>
           </select>
-        </div>
-        <span class="is-size-7 has-text-grey ml-2" v-if="detected">detected: <b>{{ detected }}</b></span>
-      </div>
-    </div>
-
-    <div class="field">
-      <label class="label is-small">Wordlists</label>
-      <div class="field is-grouped is-grouped-multiline">
-        <div class="control" v-for="s in sources" :key="s.name">
-          <label class="checkbox tag is-medium" :class="s.checked ? 'is-link is-light' : ''">
-            <input type="checkbox" v-model="s.checked" class="mr-2" />{{ s.name }} <span class="has-text-grey ml-1">{{ s.words.length.toLocaleString('en-US') }}</span>
-          </label>
-        </div>
-      </div>
-      <div class="file is-small">
-        <label class="file-label">
-          <input class="file-input" type="file" multiple accept=".txt,.lst,.dic,text/plain" @change="onWordlistFiles" />
-          <span class="file-cta"><span class="file-label">+ upload wordlist</span></span>
         </label>
+        <span class="hint" v-if="detected">detected: <b>{{ detected }}</b></span>
       </div>
     </div>
 
-    <div class="field">
-      <label class="checkbox label is-small"><input type="checkbox" v-model="useRules" class="mr-2" />apply hashcat rules</label>
+    <label class="blocklabel">wordlists</label>
+    <div class="wordlists">
+      <label class="wl-item" v-for="s in sources" :key="s.name">
+        <input type="checkbox" v-model="s.checked" /> {{ s.name }} <span class="wl-count">{{ s.words.length.toLocaleString('en-US') }}</span>
+      </label>
+    </div>
+    <div class="controls" style="margin-top:2px">
+      <button class="btn ghost sm" @click="wlFileRef.click()">+ upload wordlist</button>
+      <input ref="wlFileRef" type="file" multiple accept=".txt,.lst,.dic,text/plain" style="display:none" @change="onWordlistFiles" />
+    </div>
+
+    <div class="field-block">
+      <label class="field mb"><input type="checkbox" v-model="useRules" /> apply hashcat rules</label>
       <div v-if="useRules">
-        <div class="buttons are-small">
-          <button class="button is-light" @click="setPreset('best')">best (small)</button>
-          <button class="button is-light" @click="setPreset('digit')">append 0-9</button>
-          <button class="button is-light" @click="setPreset('capdigit')">capitalize + year</button>
-          <button class="button is-light" @click="setPreset('leet')">leet</button>
+        <div class="controls" style="margin-bottom:8px">
+          <button class="btn ghost sm" @click="setPreset('best')">best (small)</button>
+          <button class="btn ghost sm" @click="setPreset('digit')">append 0-9</button>
+          <button class="btn ghost sm" @click="setPreset('capdigit')">capitalize + year</button>
+          <button class="btn ghost sm" @click="setPreset('leet')">leet</button>
         </div>
-        <textarea class="textarea wp-mono" rows="4" v-model="rulesText" spellcheck="false"></textarea>
+        <textarea v-model="rulesText" rows="4" spellcheck="false"></textarea>
       </div>
     </div>
 
-    <div class="field is-grouped">
-      <div class="control"><button class="button is-link" :class="{ 'is-loading': running }" @click="start" :disabled="running">Crack</button></div>
-      <div class="control"><button class="button is-light" @click="stop" :disabled="!running">Stop</button></div>
-      <div class="control" v-if="found.length"><button class="button is-success" @click="download">Download {{ found.length }}</button></div>
+    <div class="controls">
+      <button class="btn" @click="start" :disabled="running">crack</button>
+      <button class="btn ghost" @click="stop" :disabled="!running">stop</button>
+      <button v-if="found.length" class="btn ghost" @click="download">download {{ found.length }}</button>
     </div>
 
-    <p class="help" v-if="status">{{ status }}</p>
-
-    <div v-if="running || progress.done" class="mt-2">
-      <progress class="progress is-link" :value="pct" max="100">{{ pct }}%</progress>
-      <p class="is-size-7 has-text-grey">{{ progress.done.toLocaleString('en-US') }} / {{ progress.total.toLocaleString('en-US') }} words · {{ progress.valid }} valid hash(es) · {{ progress.found }} cracked</p>
+    <div class="progress" :class="{ on: running || progress.done }"><i :style="{ width: pct + '%' }"></i></div>
+    <div class="statusline" v-if="status">{{ status }}</div>
+    <div class="statusline" v-if="running || progress.done">
+      {{ progress.done.toLocaleString('en-US') }} / {{ progress.total.toLocaleString('en-US') }} words · {{ progress.valid }} valid hash(es) · {{ progress.found }} cracked
     </div>
 
-    <div class="table-container wp-scroll mt-3" v-if="found.length">
-      <table class="table is-fullwidth is-hoverable">
+    <div class="tblwrap mt" v-if="found.length">
+      <table>
         <thead><tr><th>Hash</th><th>Password</th></tr></thead>
         <tbody>
           <tr v-for="(f, i) in found" :key="i">
-            <td class="wp-hash wp-mono has-text-grey">{{ f.hash }}</td>
-            <td class="wp-mono has-text-weight-semibold has-text-success">{{ f.password }}</td>
+            <td class="hash">{{ f.hash }}</td>
+            <td class="pass">{{ f.password }}</td>
           </tr>
         </tbody>
       </table>

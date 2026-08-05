@@ -49,39 +49,33 @@ function copy(hash) {
 
 <template>
   <div>
-    <h1 class="title is-4"><span class="wp-mono has-text-link">./generate</span> — password → hash</h1>
-    <p class="subtitle is-6">Pick a mode and a password to emit its hash, or choose <b>all generatable</b> to emit every mode at once. Click a hash to copy.</p>
+    <h2 class="ptitle"><span class="cmd">./generate</span> — password → hash</h2>
+    <p class="psub">Pick a mode and password to emit its hash, or <b>all generatable</b> to emit every mode at once. Click a hash to copy.</p>
 
-    <div class="field is-grouped is-grouped-multiline is-align-items-center">
-      <div class="control">
-        <div class="field has-addons mb-0">
-          <p class="control"><span class="button is-static wp-mono">echo -n</span></p>
-          <p class="control"><input class="input wp-mono" v-model="input" spellcheck="false" style="min-width:160px" /></p>
-        </div>
-      </div>
-      <div class="control">
-        <div class="select">
-          <select v-model="mode">
-            <option value="all">— all generatable ({{ genModes.length }}) —</option>
-            <option v-for="t in genModes" :key="t.mode" :value="String(t.mode)">{{ t.name }} (-m {{ t.mode }})</option>
-          </select>
-        </div>
-      </div>
-      <div class="control"><button class="button is-link" @click="run">Generate</button></div>
-      <div class="control"><input class="input" v-model="filter" placeholder="grep…" style="min-width:110px" /></div>
+    <div class="controls">
+      <span class="prompt">echo -n</span>
+      <input type="text" v-model="input" spellcheck="false" style="min-width:150px" />
+      <label class="field">mode
+        <select v-model="mode">
+          <option value="all">— all generatable ({{ genModes.length }}) —</option>
+          <option v-for="t in genModes" :key="t.mode" :value="String(t.mode)">{{ t.name }} (-m {{ t.mode }})</option>
+        </select>
+      </label>
+      <button class="btn" @click="run">generate</button>
+      <input type="text" v-model="filter" placeholder="grep…" style="min-width:110px" />
     </div>
 
-    <p class="help" v-if="status">{{ status }}</p>
-    <p class="help is-success" v-if="copied">copied: <span class="wp-mono">{{ copied }}</span></p>
+    <div class="statusline" v-if="status">{{ status }}</div>
+    <div class="statusline" v-if="copied">copied: {{ copied }}</div>
 
-    <div class="table-container wp-scroll mt-3" v-if="shown.length">
-      <table class="table is-fullwidth is-hoverable">
+    <div class="tblwrap" v-if="shown.length">
+      <table>
         <thead><tr><th>Mode</th><th>Name</th><th>Hash</th></tr></thead>
         <tbody>
           <tr v-for="r in shown" :key="r.mode">
-            <td class="wp-mono has-text-grey">-m {{ r.mode }}</td>
-            <td class="wp-mono">{{ r.name }}</td>
-            <td class="wp-hash wp-mono wp-clickable" @click="copy(r.hash)" title="click to copy">{{ r.hash }}</td>
+            <td class="mode">{{ r.mode }}</td>
+            <td class="name">{{ r.name }}</td>
+            <td class="hash" @click="copy(r.hash)" title="click to copy">{{ r.hash }}</td>
           </tr>
         </tbody>
       </table>

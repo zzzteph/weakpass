@@ -10,7 +10,6 @@
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
-    "bulma": "^1.0.2",
     "crack-js": "^1.1.6",
     "crypto-js": "^4.2.0",
     "hashcat-reverse-rules-js": "^1.0.0",

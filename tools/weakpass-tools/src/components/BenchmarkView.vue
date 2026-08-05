@@ -19,13 +19,6 @@ let worker = null
 const sorted = computed(() => [...results.value].sort((a, b) => b.speed - a.speed))
 const maxSpeed = computed(() => sorted.value.reduce((m, r) => Math.max(m, r.speed), 0))
 
-function fmt(n) {
-  if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B'
-  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M'
-  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K'
-  return String(n)
-}
-
 function start() {
   stop()
   results.value = []
@@ -52,47 +45,41 @@ onBeforeUnmount(stop)
 
 <template>
   <div>
-    <h1 class="title is-4"><span class="wp-mono has-text-link">./benchmark</span> — hashes/sec per mode</h1>
-    <p class="subtitle is-6">
+    <h2 class="ptitle"><span class="cmd">./benchmark</span> — hashes/sec per mode</h2>
+    <p class="psub">
       Raw calculation throughput in your browser. <b>Fast</b> = single-shot unsalted (md5, sha1, ntlm) — millions/sec.
       <b>Slow</b> = salted &amp; iterated by design (bcrypt, pbkdf2, *crypt) — far fewer.
     </p>
 
-    <div class="field is-grouped is-grouped-multiline is-align-items-center">
-      <div class="control">
-        <button class="button is-link" :class="{ 'is-loading': running }" @click="start" :disabled="running">Benchmark</button>
-      </div>
-      <div class="control"><button class="button is-light" @click="stop" :disabled="!running">Stop</button></div>
-      <div class="control">
-        <div class="select">
-          <select v-model.number="duration" :disabled="running">
-            <option :value="100">100 ms / mode</option>
-            <option :value="250">250 ms / mode</option>
-            <option :value="500">500 ms / mode</option>
-            <option :value="1000">1 s / mode</option>
-          </select>
-        </div>
-      </div>
-      <div class="control"><label class="checkbox mt-2"><input type="checkbox" v-model="fastAll" :disabled="running"> all fast modes ({{ allFastModes.length }})</label></div>
+    <div class="controls">
+      <button class="btn" @click="start" :disabled="running">benchmark</button>
+      <button class="btn ghost" @click="stop" :disabled="!running">stop</button>
+      <label class="field">time/mode
+        <select v-model.number="duration" :disabled="running">
+          <option :value="100">100 ms</option>
+          <option :value="250">250 ms</option>
+          <option :value="500">500 ms</option>
+          <option :value="1000">1 s</option>
+        </select>
+      </label>
+      <label class="field"><input type="checkbox" v-model="fastAll" :disabled="running"> all fast modes ({{ allFastModes.length }})</label>
     </div>
 
-    <div class="table-container wp-scroll mt-3" v-if="sorted.length">
-      <table class="table is-fullwidth is-hoverable">
-        <thead><tr><th>#</th><th>Mode</th><th class="has-text-right">Hashes / sec</th><th>Relative</th></tr></thead>
+    <div class="statusline" v-if="running">benchmarking {{ (fastAll ? allFastModes.length : COMMON.length) }} modes…</div>
+
+    <div class="tblwrap" v-if="sorted.length">
+      <table>
+        <thead><tr><th>#</th><th>Mode</th><th class="num">Hashes / sec</th><th>Relative</th></tr></thead>
         <tbody>
           <tr v-for="(r, i) in sorted" :key="r.name">
-            <td class="has-text-grey">{{ i + 1 }}</td>
-            <td class="wp-mono">{{ r.name }}</td>
-            <td class="has-text-right wp-mono has-text-link">{{ r.speed.toLocaleString('en-US') }}</td>
-            <td>
-              <div style="background:var(--wp-accent);height:8px;border-radius:2px;min-width:2px"
-                   :style="{ width: (maxSpeed ? Math.max(2, (r.speed / maxSpeed) * 100) : 2) + '%' }"
-                   :title="fmt(r.speed) + '/s'"></div>
-            </td>
+            <td class="rank">{{ i + 1 }}</td>
+            <td class="name">{{ r.name }}</td>
+            <td class="num hps">{{ r.speed.toLocaleString('en-US') }}</td>
+            <td class="barcell"><div class="bar" :style="{ width: (maxSpeed ? Math.max(2, (r.speed / maxSpeed) * 100) : 2) + '%' }"></div></td>
           </tr>
         </tbody>
       </table>
     </div>
-    <div v-else-if="!running" class="notification is-light">Hit <b>Benchmark</b> to measure throughput.</div>
+    <div v-else-if="!running" class="empty">Hit benchmark to measure throughput for every mode.</div>
   </div>
 </template>

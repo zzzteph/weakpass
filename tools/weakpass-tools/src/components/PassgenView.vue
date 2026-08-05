@@ -66,52 +66,46 @@ onMounted(() => { showRules.value = !isMobile() })
 
 <template>
   <div>
-    <h1 class="title is-4"><span class="wp-mono has-text-link">./passgen</span> — wordlist generator</h1>
-    <p class="subtitle is-6">
+    <h2 class="ptitle"><span class="cmd">./passgen</span> — wordlist generator</h2>
+    <p class="psub">
       Generate a targeted wordlist from your keywords using
       <a href="https://hashcat.net/wiki/doku.php?id=rule_based_attack" target="_blank" rel="noopener">hashcat rules</a>.
-      e.g. <b>Acme.corp</b> → <b>Acme.corp2026!</b>, <b>Acme.corp123</b>, … — all generated client-side.
+      e.g. <b>Acme.corp</b> → <b>Acme.corp2026!</b>, <b>Acme.corp123</b>, … — all client-side.
     </p>
 
-    <div class="field">
-      <label class="label">Words</label>
-      <p class="help">Separated by comma, whitespace or newline</p>
-      <div class="control">
-        <textarea class="textarea" rows="3" v-model="inputData" placeholder="Put words of interest here…"></textarea>
+    <div class="field-block">
+      <label class="blocklabel">words <span class="hint">— separated by comma, whitespace or newline</span></label>
+      <textarea v-model="inputData" rows="3" placeholder="Put words of interest here…"></textarea>
+    </div>
+
+    <div class="controls">
+      <label class="field"><input type="checkbox" v-model="showRules"> show rules</label>
+      <label class="field"><input type="checkbox" v-model="filterLength"> length &gt; 8</label>
+      <label class="field"><input type="checkbox" v-model="filterSpecial"> has special</label>
+      <label class="field"><input type="checkbox" v-model="filterNumber"> has numbers</label>
+    </div>
+
+    <div class="controls">
+      <button class="btn" @click="generate">generate</button>
+      <button v-if="results.trim().length > 0" class="btn ghost" @click="downloadResults">download</button>
+      <span class="hint" v-if="count"><b>{{ count }}</b> generated</span>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:14px">
+      <div style="flex:1 1 320px;min-width:0">
+        <label class="blocklabel">result</label>
+        <textarea v-model="results" rows="16" spellcheck="false"></textarea>
       </div>
-    </div>
-
-    <div class="field is-grouped is-grouped-multiline">
-      <div class="control"><label class="checkbox"><input type="checkbox" v-model="showRules"> Show rules</label></div>
-      <div class="control"><label class="checkbox"><input type="checkbox" v-model="filterLength"> Length &gt; 8</label></div>
-      <div class="control"><label class="checkbox"><input type="checkbox" v-model="filterSpecial"> Has special</label></div>
-      <div class="control"><label class="checkbox"><input type="checkbox" v-model="filterNumber"> Has numbers</label></div>
-    </div>
-
-    <div class="field is-grouped">
-      <div class="control"><button class="button is-link" @click="generate">Generate</button></div>
-      <div class="control"><button class="button is-success" v-if="results.trim().length > 0" @click="downloadResults">Download</button></div>
-    </div>
-
-    <div class="columns">
-      <div class="column" :class="showRules ? 'is-6' : 'is-12'">
-        <label class="label">Result <span class="tag is-link is-light" v-if="count">{{ count }}</span></label>
-        <div class="control">
-          <textarea class="textarea wp-mono" v-model="results" rows="18" spellcheck="false"></textarea>
+      <div v-if="showRules" style="flex:1 1 320px;min-width:0">
+        <label class="blocklabel">rules</label>
+        <div class="controls" style="margin-bottom:8px">
+          <button class="btn ghost sm" @click="setRules('default')">online</button>
+          <button class="btn ghost sm" @click="setRules('nsa64')">nsa64</button>
+          <button class="btn ghost sm" @click="setRules('hobo')">hob064</button>
+          <button class="btn ghost sm" @click="setRules('top500')">top 500</button>
+          <button class="btn ghost sm" @click="setRules('best64')">best64</button>
         </div>
-      </div>
-      <div class="column is-6" v-if="showRules">
-        <label class="label">Rules</label>
-        <div class="buttons are-small">
-          <button class="button is-link is-light" @click="setRules('default')">online</button>
-          <button class="button is-link is-light" @click="setRules('nsa64')">nsa64</button>
-          <button class="button is-link is-light" @click="setRules('hobo')">hob064</button>
-          <button class="button is-link is-light" @click="setRules('top500')">top 500</button>
-          <button class="button is-link is-light" @click="setRules('best64')">best64</button>
-        </div>
-        <div class="control">
-          <textarea class="textarea wp-mono" v-model="rulesData" rows="16" spellcheck="false" placeholder="Rules"></textarea>
-        </div>
+        <textarea v-model="rulesData" rows="14" spellcheck="false" placeholder="Rules"></textarea>
       </div>
     </div>
   </div>

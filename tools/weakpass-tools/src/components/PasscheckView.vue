@@ -95,69 +95,54 @@ const humanReadable = computed(() => {
 
 <template>
   <div>
-    <h1 class="title is-4"><span class="wp-mono has-text-link">./passcheck</span> — has your password been compromised?</h1>
-    <p class="subtitle is-6">
+    <h2 class="ptitle"><span class="cmd">./passcheck</span> — has your password been compromised?</h2>
+    <p class="psub">
       Check whether your password is in the <a href="https://weakpass.com/all_in_one" target="_blank" rel="noopener">all_in_one</a>
-      wordlist (27B passwords) <b>or</b> could be reached by a
+      wordlist (27B passwords) <b>or</b> reachable by a
       <a href="https://hashcat.net/wiki/doku.php?id=rule_based_attack" target="_blank" rel="noopener">rule-based</a> attack.
-      Checks run client-side — your password is never sent.
+      Runs client-side — your password is never sent.
     </p>
 
-    <form @submit.prevent="handleLookup">
-      <div class="field has-addons">
-        <div class="control">
-          <a class="button is-large" :class="isHide ? 'is-link' : 'is-danger'" @click="isHide = !isHide">
-            <span v-if="isHide">&check;</span><span v-else>&cross;</span>
-          </a>
-        </div>
-        <div class="control is-expanded">
-          <input class="input is-large" :type="isHide ? 'password' : 'text'" placeholder="password" v-model="password" />
-        </div>
-        <div class="control">
-          <button type="submit" class="button is-link is-large" :class="{ 'is-loading': isProcessing }" :disabled="isProcessing">Check</button>
-        </div>
-      </div>
-    </form>
-
-    <div v-if="isProcessing" class="notification is-info is-light mt-3">
-      <label class="label is-small">Progress · {{ progressMessage }}</label>
-      <progress class="progress is-link" :value="progress" max="100">{{ progress }}%</progress>
+    <div class="controls">
+      <button class="btn ghost" @click="isHide = !isHide">{{ isHide ? 'reveal' : 'hide' }}</button>
+      <input :type="isHide ? 'password' : 'text'" v-model="password" placeholder="password"
+             style="flex:1 1 220px" @keydown.enter="handleLookup" />
+      <button class="btn" @click="handleLookup" :disabled="isProcessing">{{ isProcessing ? 'checking…' : 'check' }}</button>
     </div>
 
-    <div class="mt-3">
-      <div class="notification is-danger" v-if="showReport === 1">
-        This password is in the weakpass wordlist. Change it immediately.
-        <br /><i>Checked across <b>{{ humanReadable }}</b> passwords.</i>
-      </div>
-      <div class="notification is-danger" v-if="showReport === 2">
-        This password is in the wordlist <b>and</b> {{ revealed.size }} rule(s) can reach it. Change it immediately.
-        <br /><i>Checked across <b>{{ humanReadable }}</b> passwords.</i>
-      </div>
-      <div class="notification is-warning" v-if="showReport === 3">
-        Not in the wordlist, but <b>{{ revealed.size }}</b> common hashcat rule(s) could crack it. Recommended to change.
-        <br /><i>Checked across <b>{{ humanReadable }}</b> passwords.</i>
-      </div>
-      <div class="notification is-success" v-if="showReport === 4">
-        This password is <b>strong</b> — not in the wordlist and not reachable by common hashcat rules.
-        <br /><i>Checked across <b>{{ humanReadable }}</b> passwords.</i>
-      </div>
+    <div class="progress" :class="{ on: isProcessing }"><i :style="{ width: progress + '%' }"></i></div>
+    <div class="statusline" v-if="isProcessing">{{ progressMessage }}</div>
+
+    <div class="report bad" v-if="showReport === 1">
+      This password is in the weakpass wordlist. <b>Change it immediately.</b>
+      <div class="em">Checked across {{ humanReadable }} passwords.</div>
+    </div>
+    <div class="report bad" v-if="showReport === 2">
+      In the wordlist <b>and</b> {{ revealed.size }} rule(s) can reach it. <b>Change it immediately.</b>
+      <div class="em">Checked across {{ humanReadable }} passwords.</div>
+    </div>
+    <div class="report warn" v-if="showReport === 3">
+      Not in the wordlist, but <b>{{ revealed.size }}</b> common hashcat rule(s) could crack it. Recommended to change.
+      <div class="em">Checked across {{ humanReadable }} passwords.</div>
+    </div>
+    <div class="report good" v-if="showReport === 4">
+      This password is <b>strong</b> — not in the wordlist and not reachable by common hashcat rules.
+      <div class="em">Checked across {{ humanReadable }} passwords.</div>
     </div>
 
-    <div class="table-container wp-scroll mt-3" v-if="revealed.size">
-      <table class="table is-fullwidth">
-        <thead><tr><th></th><th>Password</th><th><a href="https://hashcat.net/wiki/doku.php?id=rule_based_attack" target="_blank" rel="noopener">Hashcat rule</a></th></tr></thead>
+    <div class="tblwrap mt" v-if="revealed.size">
+      <table>
+        <thead><tr><th></th><th>Password</th><th><a href="https://hashcat.net/wiki/doku.php?id=rule_based_attack" target="_blank" rel="noopener">hashcat rule</a></th></tr></thead>
         <tbody>
           <tr v-for="[key, value] in Array.from(revealed.entries())" :key="key">
-            <td><span class="has-text-danger">&check;</span></td>
-            <td class="wp-mono">{{ isHide ? '******' : key }}</td>
-            <td class="wp-mono">{{ value }}</td>
+            <td class="accent">✓</td>
+            <td>{{ isHide ? '******' : key }}</td>
+            <td style="color:var(--modecol);white-space:nowrap">{{ value }}</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <div class="notification is-link is-light mt-4">
-      <b>TL;DR</b> — use a password manager like 1Password or KeePass to create strong, unique passwords.
-    </div>
+    <p class="hint mt">TL;DR — use a password manager (1Password, KeePass) for strong, unique passwords.</p>
   </div>
 </template>

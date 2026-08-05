@@ -37,7 +37,7 @@ async function handleFiles(files) {
   for (const f of files) all.push(...(await extractOne(f)))
   rows.value = all
   const n = all.filter(r => r.hash).length
-  status.value = n ? `extracted ${n} hash${n > 1 ? 'es' : ''} — click a hash to copy, or send to Crack.` : 'no extractable hash found.'
+  status.value = n ? `extracted ${n} hash${n > 1 ? 'es' : ''} — click a hash to copy, or send to crack.` : 'no extractable hash found.'
 }
 
 function onInput(e) { handleFiles(e.target.files); e.target.value = '' }
@@ -56,46 +56,46 @@ function sendToCrack() {
 
 <template>
   <div>
-    <h1 class="title is-4"><span class="wp-mono has-text-link">./extract</span> — file → hashcat hash</h1>
-    <p class="subtitle is-6">
+    <h2 class="ptitle"><span class="cmd">./extract</span> — file → hashcat hash</h2>
+    <p class="psub">
       Drop an encrypted <b>.zip / .7z / .docx / .xlsx / .rar</b> or a Wi-Fi capture — the format is sniffed and a
       ready-to-crack hashcat line is pulled out. Nothing is uploaded; it stays in your browser.
     </p>
 
-    <div v-if="!HAS_EXTRACT" class="notification is-warning">This build of crack-js has no <code>extract()</code>.</div>
+    <div v-if="!HAS_EXTRACT" class="load-err">This build of crack-js has no <code>extract()</code>.</div>
 
-    <div v-else class="wp-drop" :class="{ 'is-over': over }"
+    <div v-else class="drop" :class="{ over }"
          @click="fileInput.click()"
          @dragenter.prevent="over = true" @dragover.prevent="over = true"
          @dragleave.prevent="over = false" @drop.prevent="onDrop">
-      <p><b>Drop a file here</b> or click to choose</p>
-      <p class="is-size-7 mt-1">zip · 7z · office · rar · hccapx · pmkid/22000 text</p>
+      <b>drop a file here</b> or click to choose
+      <span class="sub">zip · 7z · office · rar · hccapx · pmkid/22000 text</span>
       <input ref="fileInput" type="file" multiple style="display:none" @change="onInput" />
     </div>
 
-    <p class="help mt-2" v-if="status">{{ status }}</p>
+    <div class="statusline mt" v-if="status">{{ status }}</div>
 
-    <div class="table-container wp-scroll mt-3" v-if="rows.length">
-      <table class="table is-fullwidth is-hoverable">
+    <div class="tblwrap mt" v-if="rows.length">
+      <table>
         <thead><tr><th>Type</th><th>Mode</th><th>Name</th><th>File</th><th>Hash</th></tr></thead>
         <tbody>
           <tr v-for="(r, i) in rows" :key="i">
-            <td class="wp-mono">{{ r.type }}</td>
-            <td class="wp-mono has-text-grey">{{ r.mode !== '' && r.mode != null ? '-m ' + r.mode : '' }}</td>
-            <td class="wp-mono">{{ r.name || '' }}</td>
-            <td class="is-size-7 has-text-grey">{{ r.file || r.src || '' }}</td>
+            <td class="name">{{ r.type }}</td>
+            <td class="mode" v-if="r.mode !== '' && r.mode != null">{{ r.mode }}</td><td v-else></td>
+            <td class="name">{{ r.name || '' }}</td>
+            <td class="hint">{{ r.file || r.src || '' }}</td>
             <td>
-              <span v-if="r.hash" class="wp-hash wp-mono wp-clickable" @click="copy(r.hash)" title="click to copy">{{ r.hash }}</span>
-              <span v-else class="tag is-warning is-light">{{ r.note || 'no hash' }}</span>
+              <span v-if="r.hash" class="hash" @click="copy(r.hash)" title="click to copy">{{ r.hash }}</span>
+              <span v-else class="pill warnp">{{ r.note || 'no hash' }}</span>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <div class="buttons mt-2" v-if="rows.some(r => r.hash)">
-      <button class="button is-link" @click="sendToCrack">Send all → Crack</button>
-      <button class="button is-light" @click="copyAll">Copy all</button>
+    <div class="controls mt" v-if="rows.some(r => r.hash)">
+      <button class="btn" @click="sendToCrack">send all → crack</button>
+      <button class="btn ghost" @click="copyAll">copy all</button>
     </div>
   </div>
 </template>

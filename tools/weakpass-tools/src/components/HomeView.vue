@@ -7,23 +7,19 @@ const tools = inject('tools').filter(t => t.id !== 'home')
 
 <template>
   <div>
-    <h1 class="title is-1 wp-mono">weak<span class="has-text-link">·</span>pass <span class="has-text-grey">tools</span></h1>
-    <p class="subtitle is-6 mt-2">
-      Password &amp; hash cracking tools — <b>100% client-side</b>, nothing uploaded. Pick one:
+    <h1 class="banner">weak<span class="sep">·</span>pass <span class="t">tools</span></h1>
+    <p class="tagline">
+      Password &amp; hash cracking tools — a <b>wordlist generator</b>, <b>password check</b>,
+      <b>hash lookup</b>, and a full <b>client-side crack toolkit</b>.
+      No server, nothing uploaded — everything runs in your browser.
     </p>
 
-    <div class="columns is-multiline mt-2">
-      <div v-for="t in tools" :key="t.id" class="column is-4-desktop is-6-tablet">
-        <a class="wp-card" @click="navigate(t.id)">
-          <p class="t wp-mono">{{ t.label.toLowerCase() }}</p>
-          <p class="d">{{ t.sub }}</p>
-        </a>
-      </div>
+    <div class="home-links">
+      <button v-for="t in tools" :key="t.id" class="home-link" @click="navigate(t.id)">
+        <b>{{ t.label }}</b><span>{{ t.sub }}</span>
+      </button>
     </div>
 
-    <p class="is-size-7 has-text-grey mt-4">
-      weakpass · client-side toolkit ·
-      <a href="https://github.com/zzzteph/weakpass" target="_blank" rel="noopener">github.com/zzzteph/weakpass</a>
-    </p>
+    <footer>weakpass tools · 100% client-side · <a href="https://github.com/zzzteph/weakpass" target="_blank" rel="noopener">github.com/zzzteph/weakpass</a></footer>
   </div>
 </template>

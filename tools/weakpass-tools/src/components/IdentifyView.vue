@@ -35,34 +35,27 @@ function clear() { input.value = ''; results.value = []; done.value = false }
 
 <template>
   <div>
-    <h1 class="title is-4"><span class="wp-mono has-text-link">./identify</span> — what is this hash?</h1>
-    <p class="subtitle is-6">Paste a hash — it's matched against all {{ hashcat.hashTypes.length }} known formats, client-side.</p>
+    <h2 class="ptitle"><span class="cmd">./identify</span> — what is this hash?</h2>
+    <p class="psub">Paste a hash — it's matched against all {{ hashcat.hashTypes.length }} known formats, client-side.</p>
 
-    <div class="field">
-      <div class="control">
-        <textarea class="textarea wp-mono" rows="2" v-model="input" placeholder="e.g. 5f4dcc3b5aa765d61d8327deb882cf99" @keydown.enter.prevent="identify"></textarea>
-      </div>
-    </div>
-    <div class="field is-grouped">
-      <div class="control"><button class="button is-link" @click="identify">Identify</button></div>
-      <div class="control"><button class="button is-light" @click="clear">Clear</button></div>
+    <textarea v-model="input" rows="2" placeholder="e.g.  5f4dcc3b5aa765d61d8327deb882cf99" @keydown.enter.prevent="identify"></textarea>
+    <div class="controls mt">
+      <button class="btn" @click="identify">identify</button>
+      <button class="btn ghost" @click="clear">clear</button>
     </div>
 
-    <div class="field is-grouped is-grouped-multiline">
-      <span class="is-size-7 has-text-grey mr-2 mt-1">try:</span>
-      <div class="control" v-for="e in examples" :key="e[0]">
-        <button class="button is-small is-light wp-mono" @click="useExample(e[1])">{{ e[0] }}</button>
-      </div>
+    <div class="examples">try:
+      <code v-for="e in examples" :key="e[0]" @click="useExample(e[1])">{{ e[0] }}</code>
     </div>
 
-    <div v-if="done" class="mt-3">
-      <div v-if="results.length" class="wp-scroll">
-        <div v-for="r in results" :key="r.name" class="box py-2 px-4 mb-2 is-flex is-align-items-center is-justify-content-space-between">
-          <span class="wp-mono has-text-weight-semibold">{{ r.name }}</span>
-          <span class="tag is-link is-light wp-mono" v-if="r.mode !== undefined">-m {{ r.mode }}</span>
+    <div v-if="done" class="mt">
+      <div v-if="results.length" class="results">
+        <div v-for="r in results" :key="r.name" class="match">
+          <span class="m-name">{{ r.name }}</span>
+          <span class="m-flags"><span class="pill" v-if="r.mode !== undefined">-m {{ r.mode }}</span></span>
         </div>
       </div>
-      <div v-else class="notification is-warning is-light">No known format matches that string.</div>
+      <div v-else class="empty">No known format matches that string.</div>
     </div>
   </div>
 </template>

@@ -1,95 +1,43 @@
 # Weakpass
 
 <p align="center">
-  <img src="https://github.com/zzzteph/weakpass/blob/readme/cracker.png?raw=true"  height="250">
+  <img src="https://github.com/zzzteph/weakpass/blob/main/cracker.png?raw=true" height="250">
 </p>
 
-Here, you can find the list of tools and example of API server from [weakpass.com](https://weakpass.com/) for password and hash cracking in one place.
+Password &amp; hash cracking tools from [weakpass.com](https://weakpass.com/) — everything in one place, **100% client-side**.
 
-### 📂 Folder Structure
+## ➡️ [tools.weakpass.com](https://tools.weakpass.com/)
 
+One app, every tool as a tab. No server, nothing uploaded — it all runs in your browser.
 
-- **tools**
-  - A collection of password and hash cracking tools. **Check them out:**
-    - ⭐ **[weakpass tools](https://tools.weakpass.com/tools/weakpass-tools/dist/) — all tools in one place** (wordlist generator · password check · lookup · identify · generate · benchmark · crack · extract)
-    - [Lookup](https://tools.weakpass.com/tools/lookup/dist/)
-    - [Passcheck](https://tools.weakpass.com/tools/passcheck/dist/)
-    - [Passgen](https://tools.weakpass.com/tools/passgen/dist/)
+### 📂 Structure
 
-- **libs**
-  - Links to the libraries used in this project.
-
-- **rules**
-  - Archive of cracking rules for advanced attacks.
+- **tools/weakpass-tools** — the app (Vue 3 + Vite + the [crack-js](https://github.com/zzzteph/crack-js) engine), deployed to [tools.weakpass.com](https://tools.weakpass.com/):
+  - [wordlist generator](https://tools.weakpass.com/#passgen) · [password check](https://tools.weakpass.com/#passcheck) · [range hash lookup](https://tools.weakpass.com/#lookup)
+  - [identify](https://tools.weakpass.com/#identify) · [generate](https://tools.weakpass.com/#generate) · [benchmark](https://tools.weakpass.com/#benchmark) · [crack](https://tools.weakpass.com/#crack) · [extract](https://tools.weakpass.com/#extract)
+- **rules** — archive of hashcat cracking rules for advanced attacks.
+- **weakpass.py** — CLI to look up hashes against the weakpass API.
 
 ---
 
+## 🚀 Tools
 
-All of the tools and libraries you can find in separate folders, a quick overview of the tools if you want to try them right now
+### Passgen — wordlist generator · [open →](https://tools.weakpass.com/#passgen)
 
-## 🚀 Tools Overview
+Generate a targeted wordlist from your keywords using [hashcat rules](https://hashcat.net/wiki/doku.php?id=rule_based_attack). During a pentest a password is often a device/network/organisation name plus a year or special character (e.g. **Evilcorp2019**) — Passgen builds those candidates so you can try them before a long wordlist attack.
 
-### Passgen - passwords generator
+### Passcheck — has your password been compromised? · [open →](https://tools.weakpass.com/#passcheck)
 
-Generate a wordlist based on user-provided keywords for targeted password testing.
+Checks whether your password is in the **weakpass_4.merged** wordlist (via a range lookup — only a hash prefix leaves your browser) **and** simulates rule-based attacks by applying "reverse" hashcat rules to see if a common rule could reach it.
 
-**Try it online:** [Passgen](https://tools.weakpass.com/tools/passgen/dist/)
+### Lookup — range hash lookup · [open →](https://tools.weakpass.com/#lookup)
 
-<p align="center">
-  <img src="https://github.com/zzzteph/weakpass/blob/main/tools/passgen/sample.png?raw=true"  height="250">
-</p>
+Reveal the password behind an MD5 / NTLM / SHA1 / SHA256 hash using the precomputed wordlist — all client-side, only a 6-char prefix is sent. You can self-host the range API against a [precomputed table](https://weakpass.com/pre-computed).
 
+### Crack toolkit — identify · generate · benchmark · crack · extract
 
-For example, during penetration testing, you need to gain access to some service, device, account, or Wi-Fi network that is password protected. For example, let it be the _Wi-Fi_ network of **EvilCorp**. Sometimes, a password is a combination of _device/network/organization_ name with some date, special character, etc. Therefore, it is simpler and easier to test some combinations before launching more complex and time-consuming checks. For example, cracking a _Wi-Fi_ password with a wordlist can take several hours and can fail, even if you choose a [great wordlist](https://weakpass.com/wordlist/1950) because there was no such password in it like **Evilcorp2019**. 
-
----
-
-### Lookup - Range Hash Lookup Tool
-
-Perform secure hash lookups without submitting sensitive data to a server using the Range API.
-
-**Try it online:** [Lookup](https://tools.weakpass.com/tools/lookup/dist/)
-
-
-<p align="center">
-  <img src="https://github.com/zzzteph/weakpass/blob/main/tools/lookup/lookup.PNG?raw=true"  height="250">
-</p>
-
-Reveal passwords for MD5, NTLM, SHA1, or SHA256 hashes using the precomputed wordlist without sending your hash to the backend. The primary advantage is that all hash checks are done client-side, ensuring that your data remains secure and private.
-
-Additionally, you can host and build the database for this tool locally and in-house. To do so, use one of the precomputed tables available [here](https://weakpass.com/pre-computed) and set up an API to serve hash ranges by value.
-
+Powered by [crack-js](https://github.com/zzzteph/crack-js) (330 hash modes): [identify](https://tools.weakpass.com/#identify) an unknown hash, [generate](https://tools.weakpass.com/#generate) a hash from a password, [benchmark](https://tools.weakpass.com/#benchmark) hashes/sec per mode, run an in-browser [dictionary + rules crack](https://tools.weakpass.com/#crack), or [extract](https://tools.weakpass.com/#extract) a hashcat hash from an encrypted zip/7z/office/rar or Wi-Fi capture.
 
 ---
 
-### Passcheck - Has your password been compromised?
-
-Determine if your password **has been compromised** or is vulnerable to rule-based attacks.
-
-Online: [Passcheck](https://tools.weakpass.com/tools/passcheck/dist/)
-
-<p align="center">
-  <img src="https://github.com/zzzteph/weakpass/blob/main/tools/passcheck/passcheck.PNG?raw=true"  height="250">
-</p>
-
-
-This tool checks if your password exists in the precomputed wordlist using a range lookup API. 
-
-**But what if someone decided to use a rule-based attack? Is your password safe for rule-based attacks?**
-Beyond that, it simulates rule-based attacks by applying "reverse" hashcat rules to identify potential candidates that could be used with the rules to crack your password.
-
-## Key Features
-- **Wordlist check** - Verifies if your password is found in the weakpass_4.merged wordlist.
-- **Rule-Based attack simulation** - Generates candidates and tests if your password is vulnerable to rule-based cracking techniques.
-
----
-
-The client-side hash cracker (formerly the standalone **Kraker-JS**) now lives as the **Crack** and **Benchmark** tabs inside the [weakpass tools](https://tools.weakpass.com/tools/weakpass-tools/dist/).
-
-
-
-
-
-
-
-
+Built with [crack-js](https://github.com/zzzteph/crack-js), [hashcat-rules-js](https://github.com/zzzteph/hashcat-rules-js) and [hashcat-reverse-rules-js](https://github.com/zzzteph/hashcat-reverse-rules-js).

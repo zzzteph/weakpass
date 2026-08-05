@@ -1,7 +1,7 @@
 <script setup>
 import { ref, reactive, computed, onActivated, onBeforeUnmount } from 'vue'
 import hashcat from 'crack-js'
-import { crackPrefill } from '../store.js'
+import { crackPrefill, workflows, crackRunWorkflow } from '../store.js'
 
 const COMMON = ('password 123456 123456789 12345678 12345 1234 1234567 1234567890 000000 111111 654321 ' +
   'qwerty abc123 password1 password123 iloveyou admin administrator root toor guest test test123 welcome ' +
@@ -21,8 +21,11 @@ const sources = reactive([
 const hashesText = ref('')
 const hashType = ref('auto')
 const availableHashTypes = hashcat.availableHashTypes || []
+const attack = ref('dict') // 'dict' | 'brute' | 'workflow'
 const useRules = ref(false)
 const rulesText = ref(':\nc\n$1\n$1 $2 $3\nr')
+const bf = reactive({ l: true, u: false, d: true, s: false, custom: '', min: 1, max: 4 })
+const selectedWf = ref('')
 const hashFileRef = ref(null)
 const wlFileRef = ref(null)
 
@@ -35,6 +38,7 @@ const RULE_PRESETS = {
 
 const running = ref(false)
 const progress = reactive({ done: 0, total: 0, found: 0, valid: 0 })
+const step = reactive({ index: 0, steps: 0, label: '' })
 const found = ref([])
 const status = ref('')
 const detected = ref('')
@@ -42,6 +46,26 @@ let worker = null
 
 onActivated(() => {
   if (crackPrefill.value) { hashesText.value = crackPrefill.value; crackPrefill.value = ''; status.value = 'Hashes loaded from Extract.' }
+  if (crackRunWorkflow.value) { attack.value = 'workflow'; selectedWf.value = crackRunWorkflow.value; crackRunWorkflow.value = ''; status.value = 'Workflow loaded — hit crack.' }
+})
+
+const SYMBOLS = '!@#$%^&*()-_=+[]{};:,.<>?/'
+function buildCharset(c) {
+  let s = ''
+  if (c.l) s += 'abcdefghijklmnopqrstuvwxyz'
+  if (c.u) s += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  if (c.d) s += '0123456789'
+  if (c.s) s += SYMBOLS
+  if (c.custom) s += c.custom
+  return [...new Set(s.split(''))].join('')
+}
+const bfCharset = computed(() => buildCharset(bf))
+const bfSpace = computed(() => {
+  const n = bfCharset.value.length
+  if (!n) return 0
+  let t = 0
+  for (let L = Math.max(1, bf.min); L <= Math.max(bf.min, bf.max); L++) t += Math.pow(n, L)
+  return t
 })
 
 const selectedWords = computed(() => {
@@ -49,6 +73,8 @@ const selectedWords = computed(() => {
   for (const s of sources) if (s.checked) for (const w of s.words) if (!seen.has(w)) { seen.add(w); out.push(w) }
   return out
 })
+const needsWordlist = computed(() => attack.value === 'dict' ||
+  (attack.value === 'workflow' && (workflows.value.find(w => w.id === selectedWf.value)?.steps || []).some(s => s.type === 'dict')))
 
 function onHashFile(e) {
   const f = e.target.files[0]; if (!f) return
@@ -75,6 +101,21 @@ function resolveType(hashes) {
   return names[0] || null
 }
 
+function buildPlan() {
+  if (attack.value === 'dict') {
+    const rules = useRules.value ? rulesText.value.split(/\r?\n/).filter(r => r.trim() !== '') : []
+    return [{ type: 'dict', rules, label: 'wordlist' + (rules.length ? ' + rules' : '') }]
+  }
+  if (attack.value === 'brute') {
+    return [{ type: 'brute', charset: bfCharset.value, min: bf.min, max: bf.max, label: 'bruteforce' }]
+  }
+  const wf = workflows.value.find(w => w.id === selectedWf.value)
+  if (!wf) return null
+  return wf.steps.map(s => s.type === 'brute'
+    ? { type: 'brute', charset: buildCharset(s.charset), min: s.min, max: s.max, label: 'bruteforce' }
+    : { type: 'dict', rules: (s.rules || '').split(/\r?\n/).filter(r => r.trim() !== ''), label: 'wordlist' + ((s.rules || '').trim() ? ' + rules' : '') })
+}
+
 function start() {
   stop()
   const hashes = hashesText.value.split(/\r?\n/).map(s => s.trim()).filter(Boolean)
@@ -82,30 +123,33 @@ function start() {
   const type = resolveType(hashes)
   if (!type) { status.value = 'Could not detect the hash type — pick one explicitly.'; return }
   detected.value = hashType.value === 'auto' ? type : ''
+  const plan = buildPlan()
+  if (!plan || !plan.length) { status.value = 'Pick a workflow to run (build one in the workflows tab).'; return }
   const words = selectedWords.value
-  if (!words.length) { status.value = 'Select or upload at least one wordlist.'; return }
-  const rules = useRules.value ? rulesText.value.split(/\r?\n/).filter(r => r.trim() !== '') : []
+  if (needsWordlist.value && !words.length) { status.value = 'Select or upload a wordlist for the wordlist step(s).'; return }
 
   found.value = []
-  progress.done = 0; progress.total = words.length; progress.found = 0; progress.valid = 0
+  progress.done = 0; progress.total = 0; progress.found = 0; progress.valid = 0
+  step.index = 0; step.steps = plan.length; step.label = ''
   running.value = true
   status.value = ''
 
   worker = new Worker(new URL('../workers/crack.worker.js', import.meta.url), { type: 'module' })
   worker.onmessage = (e) => {
     const d = e.data
-    if (d.type === 'meta') { progress.valid = d.valid; progress.total = d.total }
+    if (d.type === 'meta') { progress.valid = d.valid; step.steps = d.steps }
+    else if (d.type === 'step') { step.index = d.index; step.steps = d.steps; step.label = d.label; progress.done = 0; progress.total = 0 }
     else if (d.type === 'found') { found.value.push({ hash: d.hash, password: d.password }); progress.found = found.value.length }
     else if (d.type === 'progress') { progress.done = d.done; progress.total = d.total; progress.found = d.found }
-    else if (d.type === 'done') { progress.done = d.total; running.value = false; status.value = `Done — cracked ${d.found} of ${progress.valid}, ${d.remaining} left.`; stop() }
+    else if (d.type === 'done') { running.value = false; status.value = `Done — cracked ${d.found} of ${progress.valid}, ${d.remaining} left.`; stop() }
     else if (d.type === 'error') { running.value = false; status.value = 'Error: ' + d.message; stop() }
   }
-  worker.postMessage({ action: 'start', hashes, hashType: type, words, rules })
+  worker.postMessage({ action: 'start', hashes, hashType: type, words, plan })
 }
 function stop() { if (worker) { worker.terminate(); worker = null } running.value = false }
 onBeforeUnmount(stop)
 
-const pct = computed(() => progress.total ? Math.min(100, Math.round((progress.done / progress.total) * 100)) : 0)
+const pct = computed(() => progress.total ? Math.min(100, Math.round((progress.done / progress.total) * 100)) : (running.value ? 4 : 0))
 
 function download() {
   const txt = found.value.map(f => `${f.hash}:${f.password}`).join('\n')
@@ -118,10 +162,11 @@ function download() {
 
 <template>
   <div>
-    <h2 class="ptitle"><span class="cmd">./crack</span> — dictionary + rules</h2>
+    <h2 class="ptitle"><span class="cmd">./crack</span> — dictionary · bruteforce · workflows</h2>
     <p class="psub">
-      Paste target hashes, pick a wordlist (and optional <a href="https://hashcat.net/wiki/doku.php?id=rule_based_attack" target="_blank" rel="noopener">rules</a>),
-      and crack in a background Web Worker — 100% client-side. Best for fast modes (md5, sha1, ntlm, …).
+      Paste target hashes and run a <b>wordlist + rules</b>, a <b>bruteforce</b>, or a saved
+      <a href="#workflows">workflow</a> (chained attack) — all in a background Web Worker, 100% client-side.
+      Best for fast modes (md5, sha1, ntlm, …).
     </p>
 
     <div class="field-block">
@@ -136,22 +181,33 @@ function download() {
             <option v-for="t in availableHashTypes" :key="t" :value="t">{{ t }}</option>
           </select>
         </label>
+        <label class="field">attack
+          <select v-model="attack">
+            <option value="dict">wordlist + rules</option>
+            <option value="brute">bruteforce</option>
+            <option value="workflow" :disabled="!workflows.length">workflow</option>
+          </select>
+        </label>
         <span class="hint" v-if="detected">detected: <b>{{ detected }}</b></span>
       </div>
     </div>
 
-    <label class="blocklabel">wordlists</label>
-    <div class="wordlists">
-      <label class="wl-item" v-for="s in sources" :key="s.name">
-        <input type="checkbox" v-model="s.checked" /> {{ s.name }} <span class="wl-count">{{ s.words.length.toLocaleString('en-US') }}</span>
-      </label>
-    </div>
-    <div class="controls" style="margin-top:2px">
-      <button class="btn ghost sm" @click="wlFileRef.click()">+ upload wordlist</button>
-      <input ref="wlFileRef" type="file" multiple accept=".txt,.lst,.dic,text/plain" style="display:none" @change="onWordlistFiles" />
-    </div>
+    <!-- wordlists (dict + workflows with a wordlist step) -->
+    <template v-if="needsWordlist">
+      <label class="blocklabel">wordlists</label>
+      <div class="wordlists">
+        <label class="wl-item" v-for="s in sources" :key="s.name">
+          <input type="checkbox" v-model="s.checked" /> {{ s.name }} <span class="wl-count">{{ s.words.length.toLocaleString('en-US') }}</span>
+        </label>
+      </div>
+      <div class="controls" style="margin-top:2px">
+        <button class="btn ghost sm" @click="wlFileRef.click()">+ upload wordlist</button>
+        <input ref="wlFileRef" type="file" multiple accept=".txt,.lst,.dic,text/plain" style="display:none" @change="onWordlistFiles" />
+      </div>
+    </template>
 
-    <div class="field-block">
+    <!-- wordlist + rules -->
+    <div v-if="attack === 'dict'" class="field-block">
       <label class="field mb"><input type="checkbox" v-model="useRules" /> apply hashcat rules</label>
       <div v-if="useRules">
         <div class="controls" style="margin-bottom:8px">
@@ -164,16 +220,45 @@ function download() {
       </div>
     </div>
 
-    <div class="controls">
+    <!-- bruteforce -->
+    <div v-if="attack === 'brute'" class="cfgbox">
+      <label class="blocklabel">charset</label>
+      <div class="wf-mini">
+        <span class="charset-toggles">
+          <label class="cs-tog"><input type="checkbox" v-model="bf.l" /> a-z</label>
+          <label class="cs-tog"><input type="checkbox" v-model="bf.u" /> A-Z</label>
+          <label class="cs-tog"><input type="checkbox" v-model="bf.d" /> 0-9</label>
+          <label class="cs-tog"><input type="checkbox" v-model="bf.s" /> symbols</label>
+        </span>
+        <label class="field">custom <input type="text" v-model="bf.custom" placeholder="extra chars" style="width:120px" /></label>
+        <label class="field">min <input type="number" class="len-in" v-model.number="bf.min" min="1" max="12" /></label>
+        <label class="field">max <input type="number" class="len-in" v-model.number="bf.max" min="1" max="12" /></label>
+      </div>
+      <div class="space-est">keyspace ≈ <b>{{ bfSpace.toLocaleString('en-US') }}</b> candidates ({{ bfCharset.length }}-char set) — browser bruteforce is only practical for small keyspaces.</div>
+    </div>
+
+    <!-- workflow picker -->
+    <div v-if="attack === 'workflow'" class="cfgbox">
+      <label class="field">run workflow
+        <select v-model="selectedWf">
+          <option value="" disabled>— pick a workflow —</option>
+          <option v-for="wf in workflows" :key="wf.id" :value="wf.id">{{ wf.name }} ({{ wf.steps.length }} steps)</option>
+        </select>
+      </label>
+      <span class="hint" style="margin-left:8px">build &amp; edit these in the <a href="#workflows">workflows</a> tab →</span>
+    </div>
+
+    <div class="controls mt">
       <button class="btn" @click="start" :disabled="running">crack</button>
       <button class="btn ghost" @click="stop" :disabled="!running">stop</button>
       <button v-if="found.length" class="btn ghost" @click="download">download {{ found.length }}</button>
     </div>
 
-    <div class="progress" :class="{ on: running || progress.done }"><i :style="{ width: pct + '%' }"></i></div>
+    <div class="progress" :class="{ on: running || progress.found || step.index }"><i :style="{ width: pct + '%' }"></i></div>
     <div class="statusline" v-if="status">{{ status }}</div>
-    <div class="statusline" v-if="running || progress.done">
-      {{ progress.done.toLocaleString('en-US') }} / {{ progress.total.toLocaleString('en-US') }} words · {{ progress.valid }} valid hash(es) · {{ progress.found }} cracked
+    <div class="statusline" v-if="running || step.index">
+      <span v-if="step.steps > 1">step {{ step.index }}/{{ step.steps }} · {{ step.label }} · </span>
+      {{ progress.done.toLocaleString('en-US') }}<span v-if="progress.total"> / {{ progress.total.toLocaleString('en-US') }}</span> tried · {{ progress.valid }} valid hash(es) · {{ progress.found }} cracked
     </div>
 
     <div class="tblwrap mt" v-if="found.length">

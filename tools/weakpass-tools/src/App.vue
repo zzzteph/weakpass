@@ -10,6 +10,7 @@ import GenerateView from './components/GenerateView.vue'
 import BenchmarkView from './components/BenchmarkView.vue'
 import CrackView from './components/CrackView.vue'
 import ExtractView from './components/ExtractView.vue'
+import WorkflowsView from './components/WorkflowsView.vue'
 
 const tools = [
   { id: 'home', label: 'home', comp: HomeView, group: null, sub: 'overview' },
@@ -19,8 +20,9 @@ const tools = [
   { id: 'identify', label: 'identify', comp: IdentifyView, group: 'crack toolkit', sub: 'what is this hash?' },
   { id: 'generate', label: 'generate', comp: GenerateView, group: 'crack toolkit', sub: 'password → hash' },
   { id: 'benchmark', label: 'benchmark', comp: BenchmarkView, group: 'crack toolkit', sub: 'hashes/sec per mode' },
-  { id: 'crack', label: 'crack', comp: CrackView, group: 'crack toolkit', sub: 'dictionary + rules' },
-  { id: 'extract', label: 'extract', comp: ExtractView, group: 'crack toolkit', sub: 'file → hash' }
+  { id: 'crack', label: 'crack', comp: CrackView, group: 'crack toolkit', sub: 'dictionary · bruteforce · workflows' },
+  { id: 'extract', label: 'extract', comp: ExtractView, group: 'crack toolkit', sub: 'file → hash' },
+  { id: 'workflows', label: 'workflows', comp: WorkflowsView, group: 'crack toolkit', sub: 'preconfigure chained cracking' }
 ]
 const ids = tools.map(t => t.id)
 const active = ref(ids.includes(location.hash.replace('#', '')) ? location.hash.replace('#', '') : 'home')

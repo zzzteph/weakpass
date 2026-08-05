@@ -1,43 +1,31 @@
-# Weakpass
+# weakpass
 
 <p align="center">
-  <img src="https://github.com/zzzteph/weakpass/blob/main/cracker.png?raw=true" height="250">
+  <img src="https://github.com/zzzteph/weakpass/blob/main/cracker.png?raw=true" height="220">
 </p>
 
-Password &amp; hash cracking tools from [weakpass.com](https://weakpass.com/) — everything in one place, **100% client-side**.
+Client-side password and hash cracking tools from [weakpass.com](https://weakpass.com).
+Everything runs in the browser, nothing is uploaded.
 
-## ➡️ [tools.weakpass.com](https://tools.weakpass.com/)
+Live at https://tools.weakpass.com
 
-One app, every tool as a tab. No server, nothing uploaded — it all runs in your browser.
+## Tools
 
-### 📂 Structure
+It is one app, each tool is a tab. Open one directly at `tools.weakpass.com/#<name>`.
 
-- **tools/weakpass-tools** — the app (Vue 3 + Vite + the [crack-js](https://github.com/zzzteph/crack-js) engine), deployed to [tools.weakpass.com](https://tools.weakpass.com/):
-  - [wordlist generator](https://tools.weakpass.com/#passgen) · [password check](https://tools.weakpass.com/#passcheck) · [range hash lookup](https://tools.weakpass.com/#lookup)
-  - [identify](https://tools.weakpass.com/#identify) · [generate](https://tools.weakpass.com/#generate) · [benchmark](https://tools.weakpass.com/#benchmark) · [crack](https://tools.weakpass.com/#crack) · [extract](https://tools.weakpass.com/#extract)
-- **rules** — archive of hashcat cracking rules for advanced attacks.
-- **weakpass.py** — CLI to look up hashes against the weakpass API.
+- `passgen`: wordlist generator using hashcat rules
+- `passcheck`: check if a password is in the wordlist or crackable by common rules
+- `lookup`: reveal the password for an MD5, NTLM, SHA1 or SHA256 hash (range API, only a prefix is sent)
+- `identify`: identify a hash type
+- `generate`: turn a password into a hash, 330 modes
+- `benchmark`: hashes per second per mode
+- `crack`: dictionary, rules, bruteforce and saved workflows
+- `workflows`: preconfigure a chained attack for the crack tab
+- `extract`: pull a hashcat hash out of a zip, 7z, office, rar or Wi-Fi capture
 
----
+## Also in this repo
 
-## 🚀 Tools
+- `rules/`: hashcat rule sets
+- `weakpass.py`: command line hash lookup against the weakpass API
 
-### Passgen — wordlist generator · [open →](https://tools.weakpass.com/#passgen)
-
-Generate a targeted wordlist from your keywords using [hashcat rules](https://hashcat.net/wiki/doku.php?id=rule_based_attack). During a pentest a password is often a device/network/organisation name plus a year or special character (e.g. **Evilcorp2019**) — Passgen builds those candidates so you can try them before a long wordlist attack.
-
-### Passcheck — has your password been compromised? · [open →](https://tools.weakpass.com/#passcheck)
-
-Checks whether your password is in the **weakpass_4.merged** wordlist (via a range lookup — only a hash prefix leaves your browser) **and** simulates rule-based attacks by applying "reverse" hashcat rules to see if a common rule could reach it.
-
-### Lookup — range hash lookup · [open →](https://tools.weakpass.com/#lookup)
-
-Reveal the password behind an MD5 / NTLM / SHA1 / SHA256 hash using the precomputed wordlist — all client-side, only a 6-char prefix is sent. You can self-host the range API against a [precomputed table](https://weakpass.com/pre-computed).
-
-### Crack toolkit — identify · generate · benchmark · crack · extract
-
-Powered by [crack-js](https://github.com/zzzteph/crack-js) (330 hash modes): [identify](https://tools.weakpass.com/#identify) an unknown hash, [generate](https://tools.weakpass.com/#generate) a hash from a password, [benchmark](https://tools.weakpass.com/#benchmark) hashes/sec per mode, run an in-browser [dictionary + rules crack](https://tools.weakpass.com/#crack), or [extract](https://tools.weakpass.com/#extract) a hashcat hash from an encrypted zip/7z/office/rar or Wi-Fi capture.
-
----
-
-Built with [crack-js](https://github.com/zzzteph/crack-js), [hashcat-rules-js](https://github.com/zzzteph/hashcat-rules-js) and [hashcat-reverse-rules-js](https://github.com/zzzteph/hashcat-reverse-rules-js).
+Built on [crack-js](https://github.com/zzzteph/crack-js), [hashcat-rules-js](https://github.com/zzzteph/hashcat-rules-js) and [hashcat-reverse-rules-js](https://github.com/zzzteph/hashcat-reverse-rules-js).

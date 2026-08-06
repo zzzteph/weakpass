@@ -133,6 +133,7 @@ td.hps{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--accent)}
 .drop{border:1px dashed var(--border2);border-radius:7px;background:var(--bg2);padding:20px 16px;text-align:center;cursor:pointer;color:var(--dim);transition:border-color .15s,background .15s}
 .drop:hover,.drop.over{border-color:var(--accent);color:var(--fg);background:rgba(84,207,138,.05)}
 .drop b{color:var(--accent)} .drop .sub{font-size:11.5px;margin-top:5px;display:block}
+.drop.drop-sm{padding:11px 14px;margin-top:10px;font-size:12.5px}
 
 /* wordlists */
 .wordlists{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 8px}

@@ -3,6 +3,8 @@ import { ref, reactive, computed, onActivated, onBeforeUnmount } from 'vue'
 import hashcat from 'crack-js'
 import { crackPrefill, workflows, crackRunWorkflow } from '../store.js'
 
+const HAS_EXTRACT = typeof hashcat.extract === 'function'
+
 const COMMON = ('password 123456 123456789 12345678 12345 1234 1234567 1234567890 000000 111111 654321 ' +
   'qwerty abc123 password1 password123 iloveyou admin administrator root toor guest test test123 welcome ' +
   'welcome1 login passw0rd p@ssw0rd letmein monkey dragon sunshine princess football baseball shadow master ' +
@@ -37,12 +39,35 @@ const RULE_PRESETS = {
 }
 
 const running = ref(false)
-const progress = reactive({ done: 0, total: 0, found: 0, valid: 0 })
+const finished = ref(false)
+const progress = reactive({ done: 0, total: 0, found: 0, valid: 0, hps: 0, eta: null })
 const step = reactive({ index: 0, steps: 0, label: '' })
 const found = ref([])
 const status = ref('')
 const detected = ref('')
+const over = ref(false)
+const dropFileRef = ref(null)
 let worker = null
+
+function fmt(n) { return Number.isFinite(n) ? Math.round(n).toLocaleString('en-US') : '∞' }
+function fmtBig(n) {
+  if (!isFinite(n)) return '∞'
+  if (n < 1e6) return Math.round(n).toLocaleString('en-US')
+  if (n < 1e9) return (n / 1e6).toFixed(1) + 'M'
+  if (n < 1e12) return (n / 1e9).toFixed(1) + 'B'
+  if (n < 1e15) return (n / 1e12).toFixed(1) + 'T'
+  return n.toExponential(1)
+}
+function fmtEta(sec) {
+  if (sec == null || !isFinite(sec)) return '∞'
+  if (sec < 1) return '<1s'
+  if (sec < 60) return Math.round(sec) + 's'
+  if (sec < 3600) return Math.floor(sec / 60) + 'm ' + Math.round(sec % 60) + 's'
+  if (sec < 86400) return Math.floor(sec / 3600) + 'h ' + Math.floor((sec % 3600) / 60) + 'm'
+  if (sec < 86400 * 365) return Math.floor(sec / 86400) + 'd ' + Math.floor((sec % 86400) / 3600) + 'h'
+  const yr = sec / (86400 * 365)
+  return yr > 1e6 ? '>1M yr' : (yr < 1000 ? yr.toFixed(1) + ' yr' : Math.round(yr).toLocaleString('en-US') + ' yr')
+}
 
 onActivated(() => {
   if (crackPrefill.value) { hashesText.value = crackPrefill.value; crackPrefill.value = ''; status.value = 'Hashes loaded from Extract.' }
@@ -92,6 +117,39 @@ function onWordlistFiles(e) {
 }
 function setPreset(k) { rulesText.value = RULE_PRESETS[k]; useRules.value = true }
 
+// Drop an encrypted archive / capture → sniff it into hashcat lines → crack immediately.
+function extractOne(file) {
+  return new Promise((resolve) => {
+    const rd = new FileReader()
+    rd.onload = () => {
+      let res = null
+      try { res = hashcat.extract(new Uint8Array(rd.result)) }
+      catch (e1) {
+        try { res = hashcat.extract(new TextDecoder('utf-8').decode(new Uint8Array(rd.result))) }
+        catch (e2) { res = null }
+      }
+      resolve(res && res.length ? res : [])
+    }
+    rd.onerror = () => resolve([])
+    rd.readAsArrayBuffer(file)
+  })
+}
+async function extractAndCrack(files) {
+  if (!HAS_EXTRACT) { status.value = 'This build of crack-js has no extract().'; return }
+  if (!files || !files.length) return
+  status.value = `extracting ${files.length} file${files.length > 1 ? 's' : ''}…`
+  const all = []
+  for (const f of files) all.push(...(await extractOne(f)))
+  const hs = all.filter(r => r.hash).map(r => r.hash)
+  if (!hs.length) { status.value = 'No crackable hash found in that file.'; return }
+  hashesText.value = hs.join('\n')
+  hashType.value = 'auto'
+  status.value = `extracted ${hs.length} hash${hs.length > 1 ? 'es' : ''} — launching…`
+  start()
+}
+function onDropCrack(e) { over.value = false; if (e.dataTransfer?.files?.length) extractAndCrack(e.dataTransfer.files) }
+function onDropInput(e) { extractAndCrack(e.target.files); e.target.value = '' }
+
 function resolveType(hashes) {
   if (hashType.value !== 'auto') return hashType.value
   const first = hashes[0]
@@ -129,19 +187,19 @@ function start() {
   if (needsWordlist.value && !words.length) { status.value = 'Select or upload a wordlist for the wordlist step(s).'; return }
 
   found.value = []
-  progress.done = 0; progress.total = 0; progress.found = 0; progress.valid = 0
+  progress.done = 0; progress.total = 0; progress.found = 0; progress.valid = 0; progress.hps = 0; progress.eta = null
   step.index = 0; step.steps = plan.length; step.label = ''
-  running.value = true
+  running.value = true; finished.value = false
   status.value = ''
 
   worker = new Worker(new URL('../workers/crack.worker.js', import.meta.url), { type: 'module' })
   worker.onmessage = (e) => {
     const d = e.data
     if (d.type === 'meta') { progress.valid = d.valid; step.steps = d.steps }
-    else if (d.type === 'step') { step.index = d.index; step.steps = d.steps; step.label = d.label; progress.done = 0; progress.total = 0 }
+    else if (d.type === 'step') { step.index = d.index; step.steps = d.steps; step.label = d.label }
     else if (d.type === 'found') { found.value.push({ hash: d.hash, password: d.password }); progress.found = found.value.length }
-    else if (d.type === 'progress') { progress.done = d.done; progress.total = d.total; progress.found = d.found }
-    else if (d.type === 'done') { running.value = false; status.value = `Done — cracked ${d.found} of ${progress.valid}, ${d.remaining} left.`; stop() }
+    else if (d.type === 'progress') { progress.done = d.done; progress.total = d.total; progress.found = d.found; progress.hps = d.hps; progress.eta = d.eta }
+    else if (d.type === 'done') { finished.value = true; running.value = false; progress.eta = 0; status.value = `Done — cracked ${d.found} of ${progress.valid}, ${d.remaining} left.`; stop() }
     else if (d.type === 'error') { running.value = false; status.value = 'Error: ' + d.message; stop() }
   }
   worker.postMessage({ action: 'start', hashes, hashType: type, words, plan })
@@ -149,7 +207,12 @@ function start() {
 function stop() { if (worker) { worker.terminate(); worker = null } running.value = false }
 onBeforeUnmount(stop)
 
-const pct = computed(() => progress.total ? Math.min(100, Math.round((progress.done / progress.total) * 100)) : (running.value ? 4 : 0))
+const showTotal = computed(() => !!progress.total && isFinite(progress.total))
+const pct = computed(() => {
+  if (finished.value) return 100
+  if (showTotal.value) return Math.min(100, Math.round((progress.done / progress.total) * 100))
+  return running.value ? 4 : 0
+})
 
 function download() {
   const txt = found.value.map(f => `${f.hash}:${f.password}`).join('\n')
@@ -189,6 +252,14 @@ function download() {
           </select>
         </label>
         <span class="hint" v-if="detected">detected: <b>{{ detected }}</b></span>
+      </div>
+      <div v-if="HAS_EXTRACT" class="drop drop-sm" :class="{ over }"
+           @click="dropFileRef.click()"
+           @dragenter.prevent="over = true" @dragover.prevent="over = true"
+           @dragleave.prevent="over = false" @drop.prevent="onDropCrack">
+        <b>drop an encrypted archive or capture</b> — extract &amp; auto-crack
+        <span class="sub">zip · 7z · office · rar · hccapx · pmkid/22000 — starts immediately</span>
+        <input ref="dropFileRef" type="file" multiple style="display:none" @change="onDropInput" />
       </div>
     </div>
 
@@ -254,11 +325,13 @@ function download() {
       <button v-if="found.length" class="btn ghost" @click="download">download {{ found.length }}</button>
     </div>
 
-    <div class="progress" :class="{ on: running || progress.found || step.index }"><i :style="{ width: pct + '%' }"></i></div>
+    <div class="progress" :class="{ on: running || progress.found || step.index || finished }"><i :style="{ width: pct + '%' }"></i></div>
     <div class="statusline" v-if="status">{{ status }}</div>
     <div class="statusline" v-if="running || step.index">
       <span v-if="step.steps > 1">step {{ step.index }}/{{ step.steps }} · {{ step.label }} · </span>
-      {{ progress.done.toLocaleString('en-US') }}<span v-if="progress.total"> / {{ progress.total.toLocaleString('en-US') }}</span> tried · {{ progress.valid }} valid hash(es) · {{ progress.found }} cracked
+      {{ fmt(progress.done) }}<span v-if="showTotal"> / {{ fmtBig(progress.total) }}</span> tried
+      · <b>{{ fmt(progress.hps) }}</b> H/s<span v-if="progress.eta != null"> · eta {{ fmtEta(progress.eta) }}</span>
+      · {{ progress.valid }} valid · {{ progress.found }} cracked
     </div>
 
     <div class="tblwrap mt" v-if="found.length">
